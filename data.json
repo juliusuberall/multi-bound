@@ -1,0 +1,265 @@
+{
+    "d_mlp100": {
+        "mean2 error": 0.02555,
+        "inference": 0.023851,
+        "training": null,
+        "architecture": {
+            "mlp count": 1,
+            "layer count": 12,
+            "layers": [
+                2,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                16,
+                3
+            ]
+        }
+    },
+    "d_mlp101": {
+        "mean2 error": 0.027415,
+        "inference": 0.036402,
+        "training": null,
+        "architecture": {
+            "mlp count": 1,
+            "layer count": 7,
+            "layers": [
+                2,
+                32,
+                32,
+                32,
+                32,
+                32,
+                32,
+                3
+            ]
+        }
+    },
+    "d_mlp102": {
+        "mean2 error": 0.02476,
+        "inference": 0.006709,
+        "training": null,
+        "architecture": {
+            "mlp count": 1,
+            "layer count": 4,
+            "layers": [
+                2,
+                8,
+                8,
+                8,
+                3
+            ]
+        }
+    },
+    "d_mlp103": {
+        "mean2 error": 0.04347,
+        "inference": 0.077408,
+        "training": null,
+        "architecture": {
+            "mlp count": 1,
+            "layer count": 4,
+            "layers": [
+                2,
+                128,
+                128,
+                128,
+                3
+            ]
+        }
+    },
+    "d_mlp200": {
+        "mean2 error": 0.022773,
+        "inference": 0.005039,
+        "training": null,
+        "architecture": {
+            "mlp count": 2,
+            "layer count": 4,
+            "layers": [
+                2,
+                8,
+                8,
+                8,
+                3
+            ]
+        }
+    },
+    "d_mlp201": {
+        "mean2 error": 0.043802,
+        "inference": 0.051778,
+        "training": null,
+        "architecture": {
+            "mlp count": 2,
+            "layer count": 4,
+            "layers": [
+                2,
+                64,
+                64,
+                64,
+                3
+            ]
+        }
+    },
+    "d_mlp202": {
+        "mean2 error": 0.04054,
+        "inference": 0.01647,
+        "training": null,
+        "architecture": {
+            "mlp count": 2,
+            "layer count": 5,
+            "layers": [
+                2,
+                16,
+                16,
+                16,
+                16,
+                3
+            ]
+        }
+    },
+    "d_mlp203": {
+        "mean2 error": 0.027608,
+        "inference": 0.009226,
+        "training": null,
+        "architecture": {
+            "mlp count": 2,
+            "layer count": 9,
+            "layers": [
+                2,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                8,
+                3
+            ]
+        }
+    },
+    "d_moe400": {
+        "mean2 error": 0.026916,
+        "inference": 0.078723,
+        "training": null,
+        "architecture": {
+            "gate": {
+                "layer count": 4,
+                "layers": [
+                    2,
+                    5,
+                    5,
+                    5,
+                    2
+                ]
+            },
+            "expert": {
+                "expert count": 2,
+                "layer count": 4,
+                "layers": [
+                    2,
+                    64,
+                    64,
+                    64,
+                    3
+                ]
+            }
+        }
+    },
+    "d_moe401": {
+        "mean2 error": 0.024846,
+        "inference": 0.031125,
+        "training": null,
+        "architecture": {
+            "gate": {
+                "layer count": 4,
+                "layers": [
+                    2,
+                    5,
+                    5,
+                    5,
+                    2
+                ]
+            },
+            "expert": {
+                "expert count": 2,
+                "layer count": 4,
+                "layers": [
+                    2,
+                    16,
+                    16,
+                    16,
+                    16,
+                    16,
+                    16,
+                    3
+                ]
+            }
+        }
+    },
+    "d_moe402": {
+        "mean2 error": 0.024534,
+        "inference": 0.0282,
+        "training": null,
+        "architecture": {
+            "gate": {
+                "layer count": 6,
+                "layers": [
+                    2,
+                    8,
+                    8,
+                    8,
+                    8,
+                    8,
+                    2
+                ]
+            },
+            "expert": {
+                "expert count": 2,
+                "layer count": 6,
+                "layers": [
+                    2,
+                    8,
+                    8,
+                    8,
+                    8,
+                    8,
+                    8,
+                    3
+                ]
+            }
+        }
+    },
+    "d_moe403": {
+        "mean2 error": 0.031191,
+        "inference": 0.018848,
+        "training": null,
+        "architecture": {
+            "gate": {
+                "layer count": 3,
+                "layers": [
+                    2,
+                    8,
+                    8,
+                    2
+                ]
+            },
+            "expert": {
+                "expert count": 2,
+                "layer count": 3,
+                "layers": [
+                    2,
+                    16,
+                    16,
+                    3
+                ]
+            }
+        }
+    }
+}
