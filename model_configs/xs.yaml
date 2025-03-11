@@ -1,0 +1,15 @@
+models:
+  mlp:
+    model_name: "MLP"
+    hidden_layer: [8,8]
+    learning_rate: 0.01
+  mlp2:
+    model_name: "MLP 2"
+    hidden_layer: [8,8]
+    learning_rate: 0.01
+  moe:
+    model_name: "MoE"
+    n_experts : 2
+    expert_hidden_layer: [4,4,4]
+    gate_hidden_layer: [2,2,2]
+    learning_rate: 0.01

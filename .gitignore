@@ -1,0 +1,16 @@
+# macOS system files
+.DS_Store
+._*
+
+# Python environments
+.venv
+.vscode
+
+# Python cache & bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+*.pkl
