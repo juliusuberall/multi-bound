@@ -6,6 +6,18 @@ import matplotlib.pyplot as plt
 # Base class for sampling training data
 # Relevant when changing training data format
 class DataSampler(ABC):
+
+    @property
+    @abstractmethod
+    def x_dim(self):
+        """The signal input dimensions."""
+        pass
+
+    @property
+    @abstractmethod
+    def y_dim(self):
+        """The signal output dimensions."""
+        pass
     
     @abstractmethod
     def sample(self):
@@ -31,6 +43,14 @@ class RGBAImageSampler(DataSampler):
         self.img = jnp.array(plt.imread(img_path))
         self.rgb = self.img[...,0:3]
         self.alpha = self.img[...,3].astype(bool)
+        self._x_dim = 2  
+        self._y_dim = 3 
+
+    @property
+    def x_dim(self): return self._x_dim
+
+    @property
+    def y_dim(self): return self._y_dim
 
     def check_signal(self, key):
         """
@@ -57,7 +77,7 @@ class RGBAImageSampler(DataSampler):
         Args
         ----------
         n_samples :
-            The input image as a NumPy or JAX array.
+            The number of samples.
         key :
             Jax random key used for sampling
 
