@@ -81,7 +81,7 @@ class RGBAImageSampler(DataSampler):
         key :
             Jax random key used for sampling
 
-        Args
+        Returns
         ----------
         samples :
             The samples [coordinate, color]
@@ -109,7 +109,7 @@ class RGBAImageSampler(DataSampler):
         region_mask :
             Boolean region mask of the image, dividing it into two regions.
 
-        Args
+        Returns
         ----------
         samples :
             The samples [coordinate, color]
@@ -134,3 +134,20 @@ class RGBAImageSampler(DataSampler):
         x = x.at[...,1].divide(self.img.shape[1])
 
         return x, y
+    
+    def inference_sample(self):
+        """
+        Extract all pixel coordinates (x) to fully infere a model with the image used for this sampler.
+
+        Returns
+        ----------
+        coordinates :
+            All image coordinates from the sampled image [coordinate]
+        """
+        p_x, p_y = jnp.meshgrid(jnp.arange(self.img.shape[0]),jnp.arange(self.img.shape[1]), indexing='ij')
+        x = jnp.stack((p_x, p_y),axis=-1)
+        x = x.at[...,0].divide(self.img.shape[0])
+        x = x.at[...,1].divide(self.img.shape[1])
+        return x
+
+         

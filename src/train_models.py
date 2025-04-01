@@ -4,6 +4,7 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import optax
+from PIL import Image
 from utils.sampler import RGBAImageSampler
 from utils.model import *
 
@@ -59,6 +60,15 @@ if __name__ == "__main__":
             model.params, opt_state = update(model.params, opt_state, x, y)
             if epoch % 100 == 0:
                 print(f"Epoch {epoch}, Loss: {model_type.loss(model.params, x, y)}")
+
+        # Inference of final model for validation
+        reconstructed_signal = jnp.clip(
+            jax.vmap(lambda x: model.forward(model.params, x))(sampler.inference_sample()) * 255,
+            0,
+            255
+        )
+        Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save('test.png')
+
 
     # Train model
     print("Script finished!")
