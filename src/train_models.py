@@ -1,10 +1,7 @@
 import argparse
 import yaml
 import jax
-import jax.numpy as jnp
-import numpy as np
 import optax
-from PIL import Image
 from utils.sampler import RGBAImageSampler
 from utils.model import *
 
@@ -27,16 +24,10 @@ if __name__ == "__main__":
 
     # Create and train model
     for c in config:
+        print(f'Training "{c}"')
 
         ## Retrieve model class type
-        model_type = model_registry[c]
-
-        ## Register class as jit compilable
-        jax.tree_util.register_pytree_node(
-            model_type,
-            model_type.flatten_func,
-            model_type.unflatten_func
-        )
+        model_type = model_registry[c.split('_')[0]]
 
         ## Create inital parameters
         model = model_type(config[c], sampler, key)
@@ -61,14 +52,8 @@ if __name__ == "__main__":
             if epoch % 100 == 0:
                 print(f"Epoch {epoch}, Loss: {model_type.loss(model.params, x, y)}")
 
-        # Inference of final model for validation
-        reconstructed_signal = jnp.clip(
-            jax.vmap(lambda x: model.forward(model.params, x))(sampler.inference_sample()) * 255,
-            0,
-            255
-        )
-        Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save('test.png')
-
+        # Inference of full signal to learn for validation
+        model.full_signal_inference_IMG(sampler, c)
 
     # Train model
     print("Script finished!")

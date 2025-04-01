@@ -1,9 +1,12 @@
-mlp:
-  hidden_layer: [8,8]
+mlp_S:
+  hidden_layer: [8,8,8,8]
   learning_rate: 0.01
-# mlp2:
-#   hidden_layer: [8,8]
-#   learning_rate: 0.01
+mlp_M:
+  hidden_layer: [16,16,16,16]
+  learning_rate: 0.01
+mlp_L:
+  hidden_layer: [32,32,32,32]
+  learning_rate: 0.01
 # moe:
 #   n_experts : 2
 #   expert_hidden_layer: [4,4,4]

@@ -3,6 +3,9 @@ from utils.parameter import MLPParams
 from utils.sampler import *
 import jax.numpy as jnp
 import jax
+from PIL import Image
+import numpy as np
+import os
 import matplotlib.pyplot as plt
 
 # Base class for sampling training data
@@ -33,6 +36,9 @@ class BaseModel(ABC):
 
     @abstractmethod
     def loss(): pass
+
+    @abstractmethod
+    def full_signal_inference_IMG(): pass
 
     @abstractmethod
     def flatten_func(): pass
@@ -74,6 +80,36 @@ class MLP(BaseModel):
         preds = jax.vmap(lambda x: MLP.forward(p, x))(x)
         return jnp.mean((preds - y) ** 2)
     
+    def full_signal_inference_IMG(self, sampler, model_name):
+        """
+        Reconstructs the full image signal.
+
+        Args
+        ----------
+        sampler :
+            The sample used for training the model
+        model_name :
+            The name of the model architecture
+
+        Returns
+        ----------
+        path :
+            The path to the file of the reconstructed signal
+        """
+        # Inference of all pixel from image
+        reconstructed_signal = jnp.clip(
+            jax.vmap(lambda x: self.forward(self.params, x))(sampler.inference_sample()) * 255,
+            0,
+            255
+        )
+
+        # Create reconstruction directory and save image
+        if not os.path.isdir(model_dir["reconstruction_dir"]):
+            os.makedirs(model_dir["reconstruction_dir"])
+        path = f'{model_dir["reconstruction_dir"]}/{model_name}.png'
+        Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save(path)
+        return path
+
     # Implement functions to allow jit handeling for custom class
     # https://docs.jax.dev/en/latest/_autosummary/jax.tree_util.register_pytree_node.html
     def flatten_func(obj):
@@ -86,8 +122,20 @@ class MLP(BaseModel):
         obj.params = children
         obj.learning_rate, = aux_data
         return obj
-    
+
+# Register class as jit compilable
+jax.tree_util.register_pytree_node(
+    MLP,
+    MLP.flatten_func,
+    MLP.unflatten_func
+)
+
 # Look-up table for reading model configurations
 model_registry = {
  "mlp": MLP,
+}
+
+# Model specific directories
+model_dir = {
+    "reconstruction_dir" : "reconstruction",
 }
