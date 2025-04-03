@@ -32,12 +32,19 @@ if __name__ == "__main__":
         ## Create inital parameters
         model = model_type(config[c], sampler, key)
 
-        ## Training 
+        ## Training Hyperparameters and initalization
         opt = optax.adam(learning_rate=0.01)
         opt_state = opt.init(model.params)
-        num_epochs = 2000
+        epsilon = 1e-5
+        epoch = 0
         batch_size = 1024
 
+        ## Initialize losses for trainig stop when model satuared and plateaued
+        x, y = sampler.sample(batch_size, key)
+        previous_loss, current_loss = model_type.loss(model.params, x, y), 0
+
+        ## Update function needs to be here because of direct
+        ## referencing of opt and opt.state for JIT compilation
         @jax.jit
         def update(p, opt_state, x, y):
             grads = jax.grad(model_type.loss)(p, x, y)
@@ -46,11 +53,13 @@ if __name__ == "__main__":
             return p, opt_state
 
         # Training loop
-        for epoch in range(num_epochs):
+        while np.abs(previous_loss - current_loss) > epsilon :
             x, y = sampler.sample(batch_size, key)
             model.params, opt_state = update(model.params, opt_state, x, y)
             if epoch % 100 == 0:
-                print(f"Epoch {epoch}, Loss: {model_type.loss(model.params, x, y)}")
+                current_loss, previous_loss = model_type.loss(model.params, x, y), current_loss
+                print(f"Epoch {epoch}, Loss: {current_loss}")
+            epoch += 1
 
         # Inference of full signal to learn for validation
         model.full_signal_inference_IMG(sampler, c)
