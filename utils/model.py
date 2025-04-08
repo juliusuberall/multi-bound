@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from utils.sampler import *
+from utils.parameter import *
+from utils.registry import *
 import jax.numpy as jnp
 import jax
 from PIL import Image
@@ -7,9 +9,12 @@ import numpy as np
 import os
 import matplotlib.pyplot as plt
 
-# Base class for sampling training data
-# Relevant when changing training data format
 class BaseModel(ABC):
+    """
+    <summary>
+        Base model class which is inherited by every model architecture. This is an abstract class.
+    </summary>
+    """
 
     def init_layer(self, layer_dims, key):
         """
@@ -47,7 +52,12 @@ class BaseModel(ABC):
     def unflatten_func(): pass
 
 class MLP(BaseModel):
-
+    """
+    <summary>
+        Vanilla MLP implementation that is composed out of a single network.
+    </summary>
+    """
+    
     def __init__(self, config, sampler:DataSampler, key):
         """
         Instantiates vanilla Multilayer Perceptron for the given sampler.
@@ -62,21 +72,23 @@ class MLP(BaseModel):
             Jax random key used for sampling.
         """
         self.learning_rate = config["learning_rate"]
-        self.params = self.init_layer(
+        self.params = MLPParams(
+            params = self.init_layer(
                 [sampler.x_dim] + config["hidden_layer"] + [sampler.y_dim],
                 key
             )
+        )
     
     @staticmethod
     @jax.jit
-    def forward(p, x):
-        for W, b in p:
+    def forward(p:MLPParams, x):
+        for W, b in p.params:
             x = jax.nn.leaky_relu(jnp.dot(x, W) + b, 0.01)
         return x
     
     @staticmethod
     @jax.jit
-    def loss(p, x, y):
+    def loss(p:MLPParams, x, y):
         preds = jax.vmap(lambda x: MLP.forward(p, x))(x)
         return jnp.mean((preds - y) ** 2)
     
@@ -131,9 +143,4 @@ jax.tree_util.register_pytree_node(
 # Look-up table for reading model configurations
 model_registry = {
  "mlp": MLP,
-}
-
-# Model specific directories
-model_dir = {
-    "reconstruction_dir" : "reconstruction",
 }

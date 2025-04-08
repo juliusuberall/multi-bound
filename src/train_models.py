@@ -65,6 +65,7 @@ if __name__ == "__main__":
             epoch += 1
 
         # Save model weights as JSON
+        model.params.serialize(c)
 
         # Inference of full signal to learn for validation
         model.full_signal_inference_IMG(sampler, c)
