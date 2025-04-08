@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Train and Analyze",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "src/train_models.py",
+                "--config", "model_configs/xs.yaml"
+            ],
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
+        }
+    ]
+}

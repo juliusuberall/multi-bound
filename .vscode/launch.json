@@ -1,0 +1,31 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Model Training",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/train_models.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "model_configs/mlp.yaml",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Inference Analysis",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/train_models.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config", "model_configs/mlp.yaml",
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}
