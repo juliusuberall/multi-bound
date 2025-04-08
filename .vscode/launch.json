@@ -9,6 +9,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--config", "model_configs/mlp.yaml",
+                "--data", "data/img/dolphin_color.png",
             ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
@@ -18,11 +19,8 @@
             "name": "Inference Analysis",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/train_models.py",
+            "program": "${workspaceFolder}/src/analyze_inference.py",
             "console": "integratedTerminal",
-            "args": [
-                "--config", "model_configs/mlp.yaml",
-            ],
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }

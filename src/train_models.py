@@ -10,16 +10,19 @@ if __name__ == "__main__":
     # Initialize random key
     key = jax.random.PRNGKey(28)
 
-    # Load YAML config by parsing invoking arguments
-    # to get access to model architecture definitions
+    # Parse invoking arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True, help="Path to the model config file")
-    args = parser.parse_args()
-    with open(args.config, "r") as file:
+    parser.add_argument("--data", required=True, help="Path to data object to fit")
+    args = vars(parser.parse_args())
+
+    # Load YAML config by parsing invoking arguments
+    # to get access to model architecture definitions
+    with open(args['config'], "r") as file:
         config = yaml.safe_load(file)
 
     # Load and set up training signal
-    sampler = RGBAImageSampler("data/img/dolphin_color.png")
+    sampler = RGBAImageSampler(args['data'])
     sampler.check_signal(key)
 
     # Create and train model
@@ -61,8 +64,10 @@ if __name__ == "__main__":
                 print(f"Epoch {epoch}, Loss: {current_loss}")
             epoch += 1
 
+        # Save model weights as JSON
+
         # Inference of full signal to learn for validation
         model.full_signal_inference_IMG(sampler, c)
 
     # Train model
-    print("Script finished!")
+    print("Models trained and saved!")

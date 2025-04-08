@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from utils.parameter import MLPParams
 from utils.sampler import *
 import jax.numpy as jnp
 import jax
@@ -40,9 +39,10 @@ class BaseModel(ABC):
     @abstractmethod
     def full_signal_inference_IMG(): pass
 
+    # Implement functions to allow jit handeling for custom class
+    # https://docs.jax.dev/en/latest/_autosummary/jax.tree_util.register_pytree_node.html
     @abstractmethod
     def flatten_func(): pass
-
     @abstractmethod
     def unflatten_func(): pass
 
@@ -110,8 +110,6 @@ class MLP(BaseModel):
         Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save(path)
         return path
 
-    # Implement functions to allow jit handeling for custom class
-    # https://docs.jax.dev/en/latest/_autosummary/jax.tree_util.register_pytree_node.html
     def flatten_func(obj):
         children = (obj.params)
         aux_data = (obj.learning_rate,)
