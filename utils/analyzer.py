@@ -1,7 +1,9 @@
 import time
-from utils.model import *
+from utils.model.BaseModel import *
+from utils.sampler import *
+from flax import struct
 
-def eval_inference_speed_IMG(n:int , model_type:BaseModel, p:MLPParams, sampler:DataSampler):    
+def eval_inference_speed_IMG(n:int , model_type:BaseModel, p:struct.PyTreeNode, sampler:DataSampler):    
     """
     Measures the average inference time for the signal to fit over n repetitions.
 
@@ -30,7 +32,7 @@ def eval_inference_speed_IMG(n:int , model_type:BaseModel, p:MLPParams, sampler:
     inf_timing = jnp.mean(jnp.array(inf_timing))
     return inf_timing
 
-def eval_accuracy_IMG(model_type:BaseModel, p:MLPParams, sampler:DataSampler):
+def eval_accuracy_IMG(model_type:BaseModel, p:struct.PyTreeNode, sampler:DataSampler):
     """
     Computes the mean squared error for the reconstruction
     of the non-transparent, solid image signal.

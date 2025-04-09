@@ -3,9 +3,10 @@ import jax
 import os
 import json
 from utils.analyzer import *
-from utils.model import *
+from utils.model.BaseModel import *
 from utils.registry import * 
 from utils.sampler import RGBAImageSampler
+from utils.model.registry import *
 
 if __name__ == "__main__":
 

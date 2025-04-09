@@ -3,7 +3,8 @@ import yaml
 import jax
 import optax
 from utils.sampler import RGBAImageSampler
-from utils.model import *
+from utils.model.BaseModel import *
+from utils.model.registry import *
 
 if __name__ == "__main__":
     
