@@ -5,6 +5,11 @@ import os
 import json
 
 class MLPParams(struct.PyTreeNode):
+    """
+    <summary>
+        Simple MLP paramater.
+    </summary>
+    """
     params: list
 
     def serialize(self, path:str="parameters"):

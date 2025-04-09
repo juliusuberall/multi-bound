@@ -57,7 +57,7 @@ if __name__ == "__main__":
             return p, opt_state
 
         # Training loop
-        while np.abs(previous_loss - current_loss) > epsilon :
+        while jnp.abs(previous_loss - current_loss) > epsilon :
             x, y = sampler.sample(batch_size, key)
             model.params, opt_state = update(model.params, opt_state, x, y)
             if epoch % 100 == 0:
