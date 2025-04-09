@@ -1,6 +1,8 @@
 import argparse
 import jax
 import os
+import json
+from utils.analyzer import *
 from utils.model import *
 from utils.registry import * 
 from utils.sampler import RGBAImageSampler
@@ -20,16 +22,41 @@ if __name__ == "__main__":
     sampler.check_signal(key)
 
     # Load model parameters and analyze
+    results = {}
     for param_file in os.listdir("models"):
+
+        ## House keeping
         print(f"Analyzing {param_file}")
+        model_results = {}
 
         ## Identify model type
         model_type = model_registry[param_file.split('_')[0]]
 
         ## Deserialize JSON and retrieve model parameters
-        p = model_type.deserialize(model_dir["model_params_dir"] + "/" + param_file)
+        p = model_type.deserialize(dir_registry["model_params_dir"] + "/" + param_file)
 
-        ## Inference of full training signal to validate
-        model_type.full_signal_inference_IMG(p, sampler,param_file.split('.')[0])
+        ## Inference and save of full training signal to visually validate model
+        model_name = param_file.split('.')[0]
+        model_type.save_full_signal_inference_IMG(p, sampler, model_name)
 
-        ## Accuracy measure
+        ## M2E and inference-performance measure
+        ### Inference-performance
+        avg_inf = eval_inference_speed_IMG(100, model_type, p, sampler)
+        model_results['avg_inference'] = float(avg_inf)
+
+        ### M2E 
+        m2e = eval_accuracy_IMG(model_type, p, sampler)
+        model_results['m2e'] = float(m2e)
+
+        ## Store all analysis results for this model
+        results[f'{model_name}'] = model_results
+    
+    # Serialize and save results
+    ## Create results directory and save result data
+    dir = dir_registry["results_dir"] + "/" + dir_registry["raw_analysis_data_dir"]
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+    with open(f"{dir}/analysis_data.json", "w") as f:
+        json.dump(results, f)
+
+        

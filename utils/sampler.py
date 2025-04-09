@@ -149,5 +149,22 @@ class RGBAImageSampler(DataSampler):
         x = x.at[...,0].divide(self.img.shape[0])
         x = x.at[...,1].divide(self.img.shape[1])
         return x
+    
+    def inference_sample_solid(self):
+        """
+        Extract all non-transparent, solid pixel coordinates (x) to fully infere 
+        a model with the solid regions of the image used for this sampler.
+
+        Returns
+        ----------
+        coordinates :
+            All image coordinates from the solid regions of the sampled image
+        """
+        p_x, p_y = jnp.meshgrid(jnp.arange(self.img.shape[0]),jnp.arange(self.img.shape[1]), indexing='ij')
+        x = jnp.stack((p_x, p_y),axis=-1)[self.alpha]
+        y = self.rgb[x[...,0], x[...,1]]
+        x = x.at[...,0].divide(self.img.shape[0])
+        x = x.at[...,1].divide(self.img.shape[1])
+        return x, y
 
          

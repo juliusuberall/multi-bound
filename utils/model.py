@@ -99,9 +99,64 @@ class MLP(BaseModel):
         return jnp.mean((preds - y) ** 2)
     
     @staticmethod
-    def full_signal_inference_IMG(p:MLPParams, sampler, model_name):
+    def signal_inference_solid_IMG(p:MLPParams, sampler:RGBAImageSampler):
         """
-        Reconstructs the full image signal.
+        Inferes non-transparent, solid image signal.
+        Important since the model should only be fit to the solid region of the image.
+
+        Args
+        ----------
+        p :
+            The model parameters
+        sampler :
+            The sampler used for training the model
+
+        Returns
+        ----------
+        reconstructed_signal :
+            The full reconstructed image signal. Values in range 0.0 - 1.0 .
+        y :
+            Ground truth signal
+        """
+        # Inference of all pixel from image
+        x, y = sampler.inference_sample_solid()
+        reconstructed_signal = jnp.clip(
+            jax.vmap(lambda x: MLP.forward(p, x))(x),
+            0,
+            1
+        )
+        return reconstructed_signal, y
+
+    @staticmethod
+    def full_signal_inference_IMG(p:MLPParams, sampler:RGBAImageSampler):
+        """
+        Inferes the full image signal including transparent regions.
+
+        Args
+        ----------
+        p :
+            The model parameters
+        sampler :
+            The sampler used for training the model
+
+        Returns
+        ----------
+        reconstructed_signal :
+            The full reconstructed image signal. Values in range 0.0 - 255.0 .
+        """
+        # Inference of all pixel from image
+        reconstructed_signal = jnp.clip(
+            jax.vmap(lambda x: MLP.forward(p, x))(sampler.inference_sample()) * 255,
+            0,
+            255
+        )
+        return reconstructed_signal
+
+    @staticmethod
+    def save_full_signal_inference_IMG(p:MLPParams, sampler:RGBAImageSampler, model_name):
+        """
+        Reconstructs the full image signal and saves the image. Also inferes transparent regions.
+        Saves result with and without transparent image regions.
 
         Args
         ----------
@@ -114,22 +169,25 @@ class MLP(BaseModel):
 
         Returns
         ----------
-        path :
-            The path to the file of the reconstructed signal
+        path_full :
+            The path to the full reconstructed image signal
+        path_mask :
+            The path to the masked reconstructed image signal
         """
-        # Inference of all pixel from image
-        reconstructed_signal = jnp.clip(
-            jax.vmap(lambda x: MLP.forward(p, x))(sampler.inference_sample()) * 255,
-            0,
-            255
-        )
+        # Create reconstruction directory and save masked and non-masked image
+        if not os.path.isdir(dir_registry["reconstruction_dir"]):
+            os.makedirs(dir_registry["reconstruction_dir"])
+        ## Non-masked
+        reconstructed_signal = MLP.full_signal_inference_IMG(p, sampler)
+        path_full = f'{dir_registry["reconstruction_dir"]}/{model_name}_full.png'
+        Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save(path_full)
+        
+        ## Masked
+        path_mask = f'{dir_registry["reconstruction_dir"]}/{model_name}_masked.png'
+        reconstructed_signal = jnp.concat((reconstructed_signal, jnp.expand_dims(sampler.alpha, axis=-1)*255), axis=-1)
+        Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save(path_mask)
 
-        # Create reconstruction directory and save image
-        if not os.path.isdir(model_dir["reconstruction_dir"]):
-            os.makedirs(model_dir["reconstruction_dir"])
-        path = f'{model_dir["reconstruction_dir"]}/{model_name}.png'
-        Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save(path)
-        return path
+        return path_full, path_mask
 
     def flatten_func(obj):
         children = (obj.params)
@@ -166,6 +224,7 @@ class MLP(BaseModel):
         """
         p = MLPParams.deserialize(path)
         return p
+
 
 # Register class as jit compilable
 jax.tree_util.register_pytree_node(

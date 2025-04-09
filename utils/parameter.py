@@ -22,9 +22,9 @@ class MLPParams(struct.PyTreeNode):
             serializable_p.append([W.tolist(), b.tolist()])
         
         # Create models directory and save parameters
-        if not os.path.isdir(model_dir["model_params_dir"]):
-            os.makedirs(model_dir["model_params_dir"])
-        with open(f"{model_dir["model_params_dir"]+'/'+path}.json", "w") as f:
+        if not os.path.isdir(dir_registry["model_params_dir"]):
+            os.makedirs(dir_registry["model_params_dir"])
+        with open(f"{dir_registry["model_params_dir"]+'/'+path}.json", "w") as f:
             json.dump(serializable_p, f)
     
     @staticmethod
