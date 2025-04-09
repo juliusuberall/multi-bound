@@ -7,6 +7,7 @@
 
 # Saved model parameters
 models/
+results/
 
 # Python cache & bytecode
 __pycache__/

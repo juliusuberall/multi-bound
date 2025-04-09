@@ -28,6 +28,16 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "Format analysis results",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/format_results.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

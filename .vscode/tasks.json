@@ -31,15 +31,29 @@
             }
         },
         {
-            "label": "Train and Analyze",
+            "label": "Format Results",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "src/format_results.py"
+            ],
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
+        },
+        {
+            "label": "Full Pipeline",
             "dependsOn": [
                 "Train",
-                "Analyze"
+                "Analyze",
+                "Format Results"
             ],
             "dependsOrder": "sequence",
             "type": "shell",
             "command": "echo",
-            "args": ["Finished training and analysis."]
+            "args": ["Finished training, analysis and formatting."]
         }
     ]
 }

@@ -1,10 +1,19 @@
 # MLP setup of different complexities
-mlp_S:
-  hidden_layer: [8,8,8,8]
+mlp_01:
+  hidden_layer: [4,4,4]
   learning_rate: 0.01
-mlp_M:
+mlp_02:
+  hidden_layer: [8,8,8]
+  learning_rate: 0.01
+mlp_04:
   hidden_layer: [16,16,16,16]
-  learning_rate: 0.01
-mlp_L:
+  learning_rate: 0.005
+mlp_08:
   hidden_layer: [32,32,32,32]
-  learning_rate: 0.01
+  learning_rate: 0.003
+mlp_16:
+  hidden_layer: [64,64,64,64,64]
+  learning_rate: 0.001
+mlp_32:
+  hidden_layer: [128,128,128,128,128]
+  learning_rate: 0.0005

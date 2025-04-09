@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     # Load model parameters and analyze
     results = {}
-    for param_file in os.listdir("models"):
+    for param_file in sorted(os.listdir("models")):
 
         ## House keeping
         print(f"Analyzing {param_file}")
@@ -42,21 +42,21 @@ if __name__ == "__main__":
         ## M2E and inference-performance measure
         ### Inference-performance
         avg_inf = eval_inference_speed_IMG(100, model_type, p, sampler)
-        model_results['avg_inference'] = float(avg_inf)
+        model_results[analysis_keys["inference"]] = float(avg_inf)
 
         ### M2E 
         m2e = eval_accuracy_IMG(model_type, p, sampler)
-        model_results['m2e'] = float(m2e)
+        model_results[analysis_keys["error"]] = float(m2e)
 
         ## Store all analysis results for this model
         results[f'{model_name}'] = model_results
     
     # Serialize and save results
     ## Create results directory and save result data
-    dir = dir_registry["results_dir"] + "/" + dir_registry["raw_analysis_data_dir"]
+    dir = dir_registry["raw_analysis_data_dir"]
     if not os.path.isdir(dir):
         os.makedirs(dir)
-    with open(f"{dir}/analysis_data.json", "w") as f:
+    with open(f"{dir}/data.json", "w") as f:
         json.dump(results, f)
 
         
