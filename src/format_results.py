@@ -5,11 +5,6 @@ import os
 from datetime import datetime
 from utils.registry import *
 
-# Simple stylesheet for different architectures
-model_colors = {
-    'mlp' : 'blue'
-}
-
 if __name__ == "__main__":
 
     # Go over all data json
@@ -26,17 +21,17 @@ if __name__ == "__main__":
             # Extract analysis criteria
             for key, value in raw_data.items():
                 model_name.append(key)
-                error.append(value[analysis_keys['error']])
-                color.append(model_colors[key.split('_')[0]])
+                error.append(value[a_registry['keys']['error']])
+                color.append(a_registry['mcol'][key.split('_')[0]])
 
                 ## convert to miliseconds (1s = 1000ms)
-                inference.append(value[analysis_keys['inference']] * 1000)
+                inference.append(value[a_registry['keys']['inference']] * 1000)
 
             # Create plot and save
             plt.plot(inference, error)
             plt.scatter(inference, error, c=color)
             plt.ylabel("M2E")
-            plt.xlabel("Inference speed (ms)\n Mean of 100 iterations full image prediction")
+            plt.xlabel(f"Inference speed (ms)\n Mean of {a_registry['inf_reps']} iterations full image prediction")
             for i in range(len(model_name)):
                 plt.annotate(model_name[i], (inference[i], error[i]))
             

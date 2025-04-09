@@ -54,6 +54,17 @@
             "type": "shell",
             "command": "echo",
             "args": ["Finished training, analysis and formatting."]
+        },
+        {
+            "label": "Analyze & Format",
+            "dependsOn": [
+                "Analyze",
+                "Format Results"
+            ],
+            "dependsOrder": "sequence",
+            "type": "shell",
+            "command": "echo",
+            "args": ["Finished analysis and formatting."]
         }
     ]
 }

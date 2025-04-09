@@ -6,8 +6,17 @@ dir_registry = {
     "analysis_plot_dir" : "results/plot" # Folder to store plot with formatted analysis data
 }
 
-# Model analysis criteria
-analysis_keys = {
-    "inference" : "avg_inference",
-    "error" : " m2e"
+# Model analysis hyperparameters
+a_registry = {
+    # Inference repitions for average time measure
+    'inf_reps' : 200,
+    # Model analysis criteria
+    'keys' : {
+        "inference" : "avg_inference",
+        "error" : " m2e"
+    },
+    # Plot colors for model types
+    'mcol' : {
+        'mlp' : 'blue'
+    }
 }

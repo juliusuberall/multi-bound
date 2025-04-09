@@ -41,12 +41,12 @@ if __name__ == "__main__":
 
         ## M2E and inference-performance measure
         ### Inference-performance
-        avg_inf = eval_inference_speed_IMG(100, model_type, p, sampler)
-        model_results[analysis_keys["inference"]] = float(avg_inf)
+        avg_inf = eval_inference_speed_IMG(a_registry['inf_reps'], model_type, p, sampler)
+        model_results[a_registry['keys']["inference"]] = float(avg_inf)
 
         ### M2E 
         m2e = eval_accuracy_IMG(model_type, p, sampler)
-        model_results[analysis_keys["error"]] = float(m2e)
+        model_results[a_registry['keys']["error"]] = float(m2e)
 
         ## Store all analysis results for this model
         results[f'{model_name}'] = model_results
