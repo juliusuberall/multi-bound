@@ -2,18 +2,44 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Train and Analyze",
+            "label": "Train",
             "type": "shell",
             "command": "python",
             "args": [
                 "src/train_models.py",
-                "--config", "model_configs/xs.yaml"
+                "--config", "model_configs/mlp.yaml",
+                "--data", "data/img/dolphin_color.png",
             ],
             "options": {
                 "env": {
                     "PYTHONPATH": "${workspaceFolder}"
                 }
             }
+        },
+        {
+            "label": "Analyze",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "src/analyze_inference.py",
+                "--data", "data/img/dolphin_color.png",
+            ],
+            "options": {
+                "env": {
+                    "PYTHONPATH": "${workspaceFolder}"
+                }
+            }
+        },
+        {
+            "label": "Train and Analyze",
+            "dependsOn": [
+                "Train",
+                "Analyze"
+            ],
+            "dependsOrder": "sequence",
+            "type": "shell",
+            "command": "echo",
+            "args": ["Finished training and analysis."]
         }
     ]
 }

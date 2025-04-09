@@ -64,11 +64,8 @@ if __name__ == "__main__":
                 print(f"Epoch {epoch}, Loss: {current_loss}")
             epoch += 1
 
-        # Save model weights as JSON
+        # Save model parameters as JSON
         model.params.serialize(c)
 
-        # Inference of full signal to learn for validation
-        model.full_signal_inference_IMG(sampler, c)
-
-    # Train model
-    print("Models trained and saved!")
+        # Log Finished Training
+        print(f'"{c}" trained and saved!')

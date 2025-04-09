@@ -51,6 +51,12 @@ class BaseModel(ABC):
     @abstractmethod
     def unflatten_func(): pass
 
+    @abstractmethod
+    def serialize(): pass
+
+    @abstractmethod
+    def deserialize(): pass
+
 class MLP(BaseModel):
     """
     <summary>
@@ -92,12 +98,15 @@ class MLP(BaseModel):
         preds = jax.vmap(lambda x: MLP.forward(p, x))(x)
         return jnp.mean((preds - y) ** 2)
     
-    def full_signal_inference_IMG(self, sampler, model_name):
+    @staticmethod
+    def full_signal_inference_IMG(p:MLPParams, sampler, model_name):
         """
         Reconstructs the full image signal.
 
         Args
         ----------
+        p :
+            The model parameters
         sampler :
             The sample used for training the model
         model_name :
@@ -110,7 +119,7 @@ class MLP(BaseModel):
         """
         # Inference of all pixel from image
         reconstructed_signal = jnp.clip(
-            jax.vmap(lambda x: self.forward(self.params, x))(sampler.inference_sample()) * 255,
+            jax.vmap(lambda x: MLP.forward(p, x))(sampler.inference_sample()) * 255,
             0,
             255
         )
@@ -132,6 +141,31 @@ class MLP(BaseModel):
         obj.params = children
         obj.learning_rate, = aux_data
         return obj
+
+    def serialize(self, path):
+        """
+        Serializes the parameters. 
+        Originally the paramaters are in a JIT compatable structure which can not be directly be serialized.
+
+        Args
+        ----------
+        path :
+            Path to serialize to.
+        """
+        self.params.serialize(path)
+
+    @staticmethod
+    def deserialize(path:str) -> MLPParams:
+        """
+        Deserializes the parameters.
+
+        Args
+        ----------
+        path :
+            Parameter file to deserialize to.
+        """
+        p = MLPParams.deserialize(path)
+        return p
 
 # Register class as jit compilable
 jax.tree_util.register_pytree_node(

@@ -1,5 +1,7 @@
 from flax import struct
 from utils.registry import *
+import jax.numpy as jnp
+import os
 import json
 
 class MLPParams(struct.PyTreeNode):
@@ -18,6 +20,29 @@ class MLPParams(struct.PyTreeNode):
         serializable_p = []
         for W, b in self.params:
             serializable_p.append([W.tolist(), b.tolist()])
-
+        
+        # Create models directory and save parameters
+        if not os.path.isdir(model_dir["model_params_dir"]):
+            os.makedirs(model_dir["model_params_dir"])
         with open(f"{model_dir["model_params_dir"]+'/'+path}.json", "w") as f:
             json.dump(serializable_p, f)
+    
+    @staticmethod
+    def deserialize(file:str):
+        """
+        Deserializes the parameters into List of Tuples with JAX arrays for weights and bias.
+
+        Args
+        ----------
+        path :
+            Parameter file to deserialize to.
+        """
+        p = []
+        with open(file) as f:
+            d = json.load(f)
+
+            # Convert back into list of tuples storing JAX arrays for weights and bias
+            for W, b in d:
+                p.append((jnp.array(W), jnp.array(b)))
+
+        return MLPParams(params = p)
