@@ -48,7 +48,7 @@ class MLP(BaseModel):
     @staticmethod
     @jax.jit
     def loss(p:MLPParams, x, y):
-        preds = jax.vmap(lambda x: MLP.forward(p, x))(x)
+        preds = MLP.forward(p, x)
         return jnp.mean((preds - y) ** 2)
 
     def serialize(self, path):
