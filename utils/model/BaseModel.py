@@ -37,13 +37,6 @@ class BaseModel(ABC):
     @abstractmethod
     def full_signal_inference_IMG(): pass
 
-    # Implement functions to allow jit handeling for custom class
-    # https://docs.jax.dev/en/latest/_autosummary/jax.tree_util.register_pytree_node.html
-    @abstractmethod
-    def flatten_func(): pass
-    @abstractmethod
-    def unflatten_func(): pass
-
     @abstractmethod
     def serialize(): pass
 

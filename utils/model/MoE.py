@@ -120,10 +120,6 @@ class MoE(BaseModel):
 
     def full_signal_inference_IMG(): pass
 
-    def flatten_func(): pass
-
-    def unflatten_func(): pass
-
     def serialize(): pass
 
     def deserialize(): pass

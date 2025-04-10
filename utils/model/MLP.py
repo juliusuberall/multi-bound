@@ -140,17 +140,6 @@ class MLP(BaseModel):
 
         return path_full, path_mask
 
-    def flatten_func(obj):
-        children = (obj.params)
-        aux_data = (obj.learning_rate,)
-        return (children, aux_data)
-    
-    def unflatten_func(aux_data, children):
-        obj = object.__new__(MLP)
-        obj.params = children
-        obj.learning_rate, = aux_data
-        return obj
-
     def serialize(self, path):
         """
         Serializes the parameters. 
