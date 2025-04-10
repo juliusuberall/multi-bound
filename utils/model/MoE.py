@@ -3,6 +3,7 @@ from utils.sampler import *
 from utils.parameter.MoEParams import *
 from utils.parameter.MoEParams import *
 
+
 class MoE(BaseModel):
     """
     <summary>
@@ -95,21 +96,27 @@ class MoE(BaseModel):
         x :
             The input data to forward through the model
         """
-        # Gating
-        ## gate output shape : [batchsize, number of experts]
-        gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
 
         # Experting
-        ## expert output shape: [sample, RGB, num_experts]
+        ## expert output shape: [sample, output dimension (e.g. RGB), num_experts]
         expert_out = []
         for n in p.__dataclass_fields__:
             if n == "gate" : continue
             expert_out.append(jax.vmap(lambda x: MoE.forward_expert(p.__getattribute__(n), x))(x))
         expert_out = jnp.stack(expert_out, axis=-1)
 
+        # Gating
+        ## gate output shape : [batchsize, number of experts]
+        gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
+        ### Tile the gate output to apply weighted sum equially to all output dimensions
+        tiled_gate = jnp.expand_dims(gate, axis=-2)
+        dim_repeat = [1] * expert_out.ndim
+        dim_repeat[-2] = expert_out.shape[-2]
+        tiled_gate = jnp.tile(tiled_gate, reps=dim_repeat)
+
         # Weighted sum for final prediciton
-        ## final output shape: [sample, RGB, num_experts]
-        final_pred = jnp.sum(jnp.tile(gate[:,None,:], (1,3,1)) * expert_out, axis=-1)
+        ## final output shape: [sample, output dimensions (e.g. RGB), num_experts]
+        final_pred = jnp.sum(tiled_gate * expert_out, axis=-1)
 
         return final_pred
 
@@ -118,8 +125,6 @@ class MoE(BaseModel):
     def loss(p:MoEParams, x, y):
         preds = MoE.forward(p, x)
         return jnp.mean((preds - y) ** 2)
-
-    def full_signal_inference_IMG(): pass
 
     def serialize(self, path):
         self.params.serialize(path)

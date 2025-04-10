@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
         ## Inference and save of full training signal to visually validate model
         model_name = param_file.split('.')[0]
-        model_type.save_full_signal_inference_IMG(p, sampler, model_name)
+        model_type.save_full_signal_inference_IMG(p, sampler, model_name, model_type)
 
         ## M2E and inference-performance measure
         ### Inference-performance

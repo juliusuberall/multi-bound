@@ -3,7 +3,7 @@ from utils.model.BaseModel import *
 from utils.sampler import *
 from flax import struct
 
-def eval_inference_speed_IMG(n:int , model_type:BaseModel, p:struct.PyTreeNode, sampler:DataSampler):    
+def eval_inference_speed_IMG(n:int , model_type:BaseModel, p:BaseParams, sampler:DataSampler):    
     """
     Measures the average inference time for the signal to fit over n repetitions.
 
@@ -26,7 +26,7 @@ def eval_inference_speed_IMG(n:int , model_type:BaseModel, p:struct.PyTreeNode, 
     inf_timing = []
     for i in range(n):
         time0 = time.time()
-        model_type.signal_inference_solid_IMG(p, sampler)
+        model_type.signal_inference_solid_IMG(p, sampler, model_type)
         time1 = time.time()
         inf_timing.append(time1 - time0)
     inf_timing = jnp.mean(jnp.array(inf_timing))
@@ -51,6 +51,6 @@ def eval_accuracy_IMG(model_type:BaseModel, p:struct.PyTreeNode, sampler:DataSam
     m2e :
         Mean squared error
     """
-    rec, y = model_type.signal_inference_solid_IMG(p, sampler)
+    rec, y = model_type.signal_inference_solid_IMG(p, sampler, model_type)
     m2e = jnp.mean((rec - y)**2)
     return m2e
