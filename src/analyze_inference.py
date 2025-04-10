@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     # Load model parameters and analyze
     results = {}
-    for param_file in sorted(os.listdir("models")):
+    for param_file in sorted(os.listdir(dir_registry['model_params_dir'])):
 
         ## House keeping
         print(f"Analyzing {param_file}")

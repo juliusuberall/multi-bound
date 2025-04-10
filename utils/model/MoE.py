@@ -1,6 +1,6 @@
 from utils.model.BaseModel import BaseModel
 from utils.sampler import *
-from utils.parameter.BaseParams import *
+from utils.parameter.MoEParams import *
 from utils.parameter.MoEParams import *
 
 class MoE(BaseModel):
@@ -48,7 +48,7 @@ class MoE(BaseModel):
     
     @staticmethod
     @jax.jit
-    def forward_expert(p:BaseParams, x):
+    def forward_expert(p:MoEParams, x):
         """
         Forward through expert network.
 
@@ -65,7 +65,7 @@ class MoE(BaseModel):
 
     @staticmethod
     @jax.jit
-    def forward_gate(p:BaseParams, x):
+    def forward_gate(p:MoEParams, x):
         """
         Forward through gate network and pick top K.
 
@@ -84,7 +84,7 @@ class MoE(BaseModel):
 
     @staticmethod
     @jax.jit
-    def forward(p:BaseParams, x):
+    def forward(p:MoEParams, x):
         """
         Forward through entire Mixture of Experts (MoE).
 
@@ -115,7 +115,7 @@ class MoE(BaseModel):
 
     @staticmethod
     @jax.jit
-    def loss(p:BaseParams, x, y):
+    def loss(p:MoEParams, x, y):
         preds = MoE.forward(p, x)
         return jnp.mean((preds - y) ** 2)
 
@@ -124,4 +124,7 @@ class MoE(BaseModel):
     def serialize(self, path):
         self.params.serialize(path)
 
-    def deserialize(): pass
+    @staticmethod
+    def deserialize(path:str) -> MoEParams:
+        p = MoEParams.deserialize(path)
+        return p

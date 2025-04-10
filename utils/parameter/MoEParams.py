@@ -1,6 +1,6 @@
-from flax import struct
 from utils.registry import *
 from utils.parameter.BaseParams import *
+import jax.numpy as jnp
 import json
 import os
 
@@ -10,16 +10,12 @@ import os
 ## Expert (data input dimension, ... , hidden, ..., data output dimension)
 ## -> returns expert wise predicition
 
-class MoEParams2E(BaseParams):
+class MoEParams(BaseParams):
     """
     <summary>
-        MoE paramater struct for 1 gate and 2 expert networks.
+        Base MoE parameter structure.
     </summary>
     """
-    gate: list = None
-    expert1: list = None
-    expert2: list = None
-
     def serialize(self, path:str="parameters"):
         serialized_p = []
 
@@ -36,9 +32,43 @@ class MoEParams2E(BaseParams):
             os.makedirs(dir_registry["model_params_dir"])
         with open(f"{dir_registry["model_params_dir"]+'/'+path}.json", "w") as f:
             json.dump(serialized_p, f)
+    
+    @staticmethod
+    def deserialize(file:str):
+        # Expects the serialized MoE to follow the standard -> [gate, 1st expert, ..., nth expert]
+        # and match the order in the corresponding MoEParamsXXX struct
+        p = []
+        with open(file) as f:
+            d = json.load(f)
 
+            # Determine the number of experts and select correct MoEParams struct
+            n_experts = len(d) - 1 
+            moe_params = moe_params_registry[n_experts]()
 
-class MoEParams4E(BaseParams):
+            # Convert back into list of tuples storing JAX arrays for weights and bias
+            n = moe_params.__dataclass_fields__
+            for i, key in enumerate(n):
+                ## Load from json and insert in each network
+                p = []
+                for W, b in d[i]:
+                    p.append((jnp.array(W), jnp.array(b)))
+
+                ## **{x:y} transforms into keyword argument x=y
+                moe_params = moe_params.replace(**{key: p})
+
+        return moe_params
+
+class MoEParams2E(MoEParams):
+    """
+    <summary>
+        MoE paramater struct for 1 gate and 2 expert networks.
+    </summary>
+    """
+    gate: list = None
+    expert1: list = None
+    expert2: list = None
+
+class MoEParams4E(MoEParams):
     """
     <summary>
         MoE paramater struct for 1 gate and 4 expert networks.
