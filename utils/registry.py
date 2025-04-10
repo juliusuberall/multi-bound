@@ -19,5 +19,6 @@ a_registry = {
     'mcol' : {
         'mlp' : 'blue',
         'moe' : 'magenta',
+        'moeH' : 'yellow',
     }
 }

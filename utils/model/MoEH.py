@@ -1,0 +1,84 @@
+from utils.model.MoE import *
+import inspect
+import shutil
+
+class MoEH(MoE):
+    """
+    <summary>
+        Soft trained and hard iferred Mixture of Experts (MoE) implementation with gate network and n expert networks.
+    </summary>
+    """
+
+    def __init__(self, config, sampler:DataSampler, key):
+        # Delegate to parent constructor 
+        super().__init__(config, sampler, key)
+    
+    @staticmethod
+    @jax.jit
+    def hard_forward(p:MoEParams, x):
+        """
+        Hard forward through entire Mixture of Experts (MoE). 
+        This will select the top k experts and use them for inferrence instead of using all for all.
+
+        Args
+        ----------
+        p :
+            Network parameters for gate and experts
+        x :
+            The input data to forward through the model
+        """
+
+        ##### HARD CODED FOR NOW
+        ##### could not find good solution in implementation
+        top_k = 2
+
+        # Experting
+        ## expert output shape: [sample, output dimension (e.g. RGB), num_experts]
+        expert_out = []
+        for n in p.__dataclass_fields__:
+            if n == "gate" : continue
+            expert_out.append(jax.vmap(lambda x: MoE.forward_expert(p.__getattribute__(n), x))(x))
+        expert_out = jnp.stack(expert_out, axis=-1)
+
+        # Get top K indicies
+        ## gate output shape : [batchsize, number of experts
+        gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
+        _ , idx = jax.lax.top_k(gate, top_k)
+        
+        # Hard expert selection
+        ## shape: [sample, num_experts, output dimension (e.g. RGB)]
+        expert_out = jnp.swapaxes(expert_out, -1, -2)
+        hard_selection = jnp.take_along_axis(expert_out, idx[...,None], axis=-2)
+        hard_selection = jnp.sum(jnp.swapaxes(hard_selection, -1, -2), axis=-1)
+
+        return hard_selection
+    
+    @staticmethod
+    def forward(p:MoEParams, x):
+        # Delegate to either soft or hard forward if model is trained or not 
+        caller = inspect.stack()[1].function 
+        if caller == "loss": 
+            return super().forward(p,x)
+        else:
+            return MoEH.hard_forward(p,x)
+    
+    @staticmethod
+    def analysis_prep():
+        """
+        Duplicates all soft trained moe json and declares them to be inferred hard as MoEH
+        """
+        folder = dir_registry['model_params_dir']
+        for f in sorted(os.listdir(folder)):
+            if f.split('_')[0] == 'moe':
+                shutil.copy(folder + "/" + f, folder + "/" + f.split('_')[0] + "H_"+ f.split('_')[1])
+
+    @staticmethod
+    def analysis_cleanup():
+        """
+        Removes moeH json, since they are only needed for analysis, but are essentially the same as MoE
+        """
+        folder = dir_registry['model_params_dir']
+        for f in sorted(os.listdir(folder)):
+            if f.split('_')[0] == 'moeH':
+                if os.path.exists(folder + "/" + f):
+                    os.remove(folder + "/" + f)

@@ -43,7 +43,7 @@ if __name__ == "__main__":
             plt.ylabel("M2E")
             plt.xlabel(f"Inference speed (ms)\n Mean of {a_registry['inf_reps']} iterations full image prediction")
             for i in range(len(model_name)):
-                plt.annotate(model_name[i], (inference[i], error[i]))
+                plt.annotate(model_name[i], (inference[i], error[i]), fontsize=6)
             
             # Save plot with timestamp to avoid overide
             dir = dir_registry["analysis_plot_dir"]

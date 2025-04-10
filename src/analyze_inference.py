@@ -22,6 +22,8 @@ if __name__ == "__main__":
     sampler = RGBAImageSampler(args['data'])
     sampler.check_signal(key)
 
+    MoEH.analysis_prep()
+
     # Load model parameters and analyze
     results = {}
     for param_file in sorted(os.listdir(dir_registry['model_params_dir'])):
@@ -52,6 +54,8 @@ if __name__ == "__main__":
         ## Store all analysis results for this model
         results[f'{model_name}'] = model_results
     
+    MoEH.analysis_cleanup()
+
     # Serialize and save results
     ## Create results directory and save result data
     dir = dir_registry["raw_analysis_data_dir"]

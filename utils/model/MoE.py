@@ -1,13 +1,12 @@
 from utils.model.BaseModel import BaseModel
 from utils.sampler import *
 from utils.parameter.MoEParams import *
-from utils.parameter.MoEParams import *
 
 
 class MoE(BaseModel):
     """
     <summary>
-        Mixture of Experts (MoE) implementation with gate network and n expert networks.
+        Soft trained and soft iferred Mixture of Experts (MoE) implementation with gate network and n expert networks
     </summary>
     """
 
