@@ -141,26 +141,9 @@ class MLP(BaseModel):
         return path_full, path_mask
 
     def serialize(self, path):
-        """
-        Serializes the parameters. 
-        Originally the paramaters are in a JIT compatable structure which can not be directly be serialized.
-
-        Args
-        ----------
-        path :
-            Path to serialize to.
-        """
         self.params.serialize(path)
 
     @staticmethod
     def deserialize(path:str) -> MLPParams:
-        """
-        Deserializes the parameters.
-
-        Args
-        ----------
-        path :
-            Parameter file to deserialize to.
-        """
         p = MLPParams.deserialize(path)
         return p

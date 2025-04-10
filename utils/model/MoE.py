@@ -1,5 +1,6 @@
 from utils.model.BaseModel import BaseModel
 from utils.sampler import *
+from utils.parameter.BaseParams import *
 from utils.parameter.MoEParams import *
 
 class MoE(BaseModel):
@@ -47,7 +48,7 @@ class MoE(BaseModel):
     
     @staticmethod
     @jax.jit
-    def forward_expert(p:MoEParams, x):
+    def forward_expert(p:BaseParams, x):
         """
         Forward through expert network.
 
@@ -64,7 +65,7 @@ class MoE(BaseModel):
 
     @staticmethod
     @jax.jit
-    def forward_gate(p:MoEParams, x):
+    def forward_gate(p:BaseParams, x):
         """
         Forward through gate network and pick top K.
 
@@ -83,7 +84,7 @@ class MoE(BaseModel):
 
     @staticmethod
     @jax.jit
-    def forward(p:MoEParams, x):
+    def forward(p:BaseParams, x):
         """
         Forward through entire Mixture of Experts (MoE).
 
@@ -114,12 +115,13 @@ class MoE(BaseModel):
 
     @staticmethod
     @jax.jit
-    def loss(p:MoEParams, x, y):
+    def loss(p:BaseParams, x, y):
         preds = MoE.forward(p, x)
         return jnp.mean((preds - y) ** 2)
 
     def full_signal_inference_IMG(): pass
 
-    def serialize(): pass
+    def serialize(self, path):
+        self.params.serialize(path)
 
     def deserialize(): pass

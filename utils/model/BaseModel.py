@@ -38,7 +38,26 @@ class BaseModel(ABC):
     def full_signal_inference_IMG(): pass
 
     @abstractmethod
-    def serialize(): pass
+    def serialize(): 
+        """
+        Serializes the parameters. 
+        Originally the paramaters are in a list and tuple wrapped JAX arrays which which can not be directly be serialized.
+
+        Args
+        ----------
+        path :
+            Path to serialize to.
+        """
+        pass
 
     @abstractmethod
-    def deserialize(): pass
+    def deserialize(): 
+        """
+        Deserializes the parameters.
+
+        Args
+        ----------
+        path :
+            Parameter file to deserialize to.
+        """
+        pass
