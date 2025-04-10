@@ -1,4 +1,3 @@
-import matplotlib as mp
 import matplotlib.pyplot as plt
 import json
 import os
@@ -13,6 +12,7 @@ if __name__ == "__main__":
 
         # Initialize data cotainer for creating plots
         model_name, color, error, inference = [], [], [], []
+        line_x, line_y, current_type = [], [], ""
 
         # Deserialize analysis data 
         with open(folder + "/" + file) as f:
@@ -20,15 +20,25 @@ if __name__ == "__main__":
 
             # Extract analysis criteria
             for key, value in raw_data.items():
+                model_type = key.split('_')[0]
                 model_name.append(key)
                 error.append(value[a_registry['keys']['error']])
-                color.append(a_registry['mcol'][key.split('_')[0]])
+                color.append(a_registry['mcol'][model_type])
 
                 ## convert to miliseconds (1s = 1000ms)
                 inference.append(value[a_registry['keys']['inference']] * 1000)
 
-            # Create plot and save
-            plt.plot(inference, error)
+                # Create plot and save
+                ## Draw line between models
+                if current_type != model_type: 
+                    if current_type != '' : plt.plot(line_x, line_y, color=a_registry['mcol'][current_type])
+                    line_x, line_y, current_type = [inference[-1]], [error[-1]], model_type
+                else: 
+                    line_y.append(error[-1])
+                    line_x.append(inference[-1])
+            plt.plot(line_x, line_y, color=a_registry['mcol'][current_type])
+
+            ## Plot model points, annotate and label axis
             plt.scatter(inference, error, c=color)
             plt.ylabel("M2E")
             plt.xlabel(f"Inference speed (ms)\n Mean of {a_registry['inf_reps']} iterations full image prediction")

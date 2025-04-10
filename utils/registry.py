@@ -17,6 +17,7 @@ a_registry = {
     },
     # Plot colors for model types
     'mcol' : {
-        'mlp' : 'blue'
+        'mlp' : 'blue',
+        'moe' : 'magenta',
     }
 }
