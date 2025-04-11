@@ -6,6 +6,7 @@ class MoEH(MoE):
     """
     <summary>
         Soft trained and hard iferred Mixture of Experts (MoE) implementation with gate network and n expert networks.
+        Builds on top of trained soft MoE and is not intended for training due to hard forward function.
     </summary>
     """
 
@@ -15,7 +16,7 @@ class MoEH(MoE):
     
     @staticmethod
     @jax.jit
-    def hard_forward(p:MoEParams, x):
+    def forward(p:MoEParams, x):
         """
         Hard forward through entire Mixture of Experts (MoE). 
         This will select the top k experts and use them for inferrence instead of using all for all.
@@ -25,7 +26,7 @@ class MoEH(MoE):
         p :
             Network parameters for gate and experts
         x :
-            The input data to forward through the model
+            The input data to forward through the model. Expects 2D array [batch dimension, input dim]
         """
 
         ##### HARD CODED FOR NOW
@@ -54,13 +55,10 @@ class MoEH(MoE):
         return hard_selection
     
     @staticmethod
-    def forward(p:MoEParams, x):
-        # Delegate to either soft or hard forward if model is trained or not 
-        caller = inspect.stack()[1].function 
-        if caller == "loss": 
-            return super().forward(p,x)
-        else:
-            return MoEH.hard_forward(p,x)
+    @jax.jit
+    def loss(p:MoEParams, x, y):
+        preds = MoEH.forward(p, x)
+        return jnp.mean((preds - y) ** 2)
     
     @staticmethod
     def analysis_prep():
