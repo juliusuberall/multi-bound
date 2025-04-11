@@ -89,7 +89,7 @@ class RGBAImageSampler(DataSampler):
         """
         p_x, p_y = jnp.meshgrid(jnp.arange(self.img.shape[0]),jnp.arange(self.img.shape[1]), indexing='ij')
         p_x = jnp.stack((p_x, p_y),axis=-1)[self.alpha]
-        x = p_x[jax.random.choice(jax.random.split(key)[1], p_x.shape[0], (n_samples,))]
+        x = p_x[jax.random.choice(jax.random.split(key)[1], p_x.shape[0], (n_samples,), replace=False)]
         y = self.rgb[x[...,0], x[...,1]]
         x = x.at[...,0].divide(self.img.shape[0])
         x = x.at[...,1].divide(self.img.shape[1])

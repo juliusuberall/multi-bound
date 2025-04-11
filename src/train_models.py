@@ -2,9 +2,12 @@ import argparse
 import yaml
 import jax
 import optax
+import numpy as np
+from collections import deque
 from utils.DataSampler import RGBAImageSampler
 from utils.model.BaseModel import *
 from utils.model.registry import *
+from utils.Analyzer import Analyzer
 
 if __name__ == "__main__":
     
@@ -37,15 +40,21 @@ if __name__ == "__main__":
         model = model_type(config[c], sampler, key)
 
         ## Training Hyperparameters and initalization
-        opt = optax.adam(learning_rate=0.01)
+        opt = optax.adam(model.learning_rate)
         opt_state = opt.init(model.params)
-        epsilon = 1e-5
         epoch = 0
-        batch_size = 1024
+
+        analyzer = Analyzer(sampler)
 
         ## Initialize losses for trainig stop when model satuared and plateaued
-        x, y = sampler.sample(batch_size, key)
-        previous_loss, current_loss = model_type.loss(model.params, x, y), 0
+        x, y = sampler.sample(train_set["batch_size"], key)
+        avg_previous_val_loss, val_loss = analyzer.eval_accuracy_IMG(model_type, model.params), 0
+        
+        ### To check if the model converged the last two epoch checkpoint
+        ### losses are averaged and the difference to the current loss is 
+        ### checked against a threshold 
+        loss_buffer = deque(maxlen= train_set["plateau_depth"])
+        loss_buffer.append(float(avg_previous_val_loss))
 
         ## Update function needs to be here because of direct
         ## referencing of opt and opt.state for JIT compilation
@@ -57,12 +66,22 @@ if __name__ == "__main__":
             return p, opt_state
 
         # Training loop
-        while jnp.abs(previous_loss - current_loss) > epsilon :
-            x, y = sampler.sample(batch_size, key)
+        while jnp.abs(avg_previous_val_loss - val_loss) > train_set["epsilon"] :
+
+            # Split JAX random key to ensure new data sampling
+            key, subkey = jax.random.split(key)
+
+            x, y = sampler.sample(train_set["batch_size"], subkey)
             model.params, opt_state = update(model.params, opt_state, x, y)
             if epoch % 100 == 0:
-                current_loss, previous_loss = model_type.loss(model.params, x, y), current_loss
-                print(f"Epoch {epoch}, Loss: {current_loss}")
+
+                ## Validation Loss logging to detect convergence plateau
+                ## if maintained over epoch checkpoints
+                val_loss, previous_val_loss = analyzer.eval_accuracy_IMG(model_type, model.params), val_loss
+                loss_buffer.append(float(previous_val_loss))
+                avg_previous_val_loss = np.mean(loss_buffer)
+
+                print(f"Epoch {epoch}, Val-Loss: {val_loss}")
             epoch += 1
 
         # Save model parameters as JSON

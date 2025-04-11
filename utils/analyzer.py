@@ -76,8 +76,6 @@ class Analyzer():
         m2e :
             Mean squared error
         """
-        # Model inference 
-        rec = model_type.full_signal_inference_IMG(p, self.sampler, model_type)
 
         # Use loss function to compute accuracy 
         # Requires all loss functions to be evaluated the same to allow for comparison
