@@ -31,19 +31,31 @@ if __name__ == "__main__":
                 # Create plot and save
                 ## Draw line between models
                 if current_type != model_type: 
-                    if current_type != '' : plt.plot(line_x, line_y, color=a_registry['mcol'][current_type])
+                    if current_type != '' : plt.plot(line_x, line_y, color=a_registry['mcol'][current_type], label=current_type)
                     line_x, line_y, current_type = [inference[-1]], [error[-1]], model_type
                 else: 
                     line_y.append(error[-1])
                     line_x.append(inference[-1])
-            plt.plot(line_x, line_y, color=a_registry['mcol'][current_type])
+            plt.plot(line_x, line_y, color=a_registry['mcol'][current_type], label=current_type)
 
             ## Plot model points, annotate and label axis
-            plt.scatter(inference, error, c=color)
+            plt.scatter(
+                inference,
+                error,
+                s=90,
+                c=color)
             plt.ylabel("M2E")
             plt.xlabel(f"Inference speed (ms)\n Mean of {a_registry['inf_reps']} iterations full image prediction")
             for i in range(len(model_name)):
-                plt.annotate(model_name[i], (inference[i], error[i]), fontsize=6)
+                plt.annotate(
+                    model_name[i].split('_')[1].replace("0", ""),
+                    (inference[i], error[i]),
+                    ha='center',
+                    va='center',
+                    c='white',
+                    fontweight='bold',
+                    fontsize=6)
+            plt.legend()
             
             # Save plot with timestamp to avoid overide
             dir = dir_registry["analysis_plot_dir"]
@@ -51,4 +63,4 @@ if __name__ == "__main__":
                 os.makedirs(dir)
             timestamp = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
             plt.tight_layout()
-            plt.savefig(f"{ dir + "/" + timestamp}.png") 
+            plt.savefig(f"{ dir + "/" + timestamp}.png", dpi=300) 
