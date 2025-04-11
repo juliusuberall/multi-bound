@@ -1,5 +1,5 @@
 from utils.registry import *
-from utils.sampler import *
+from utils.DataSampler import *
 from utils.parameter.BaseParams import *
 from abc import ABC, abstractmethod
 from PIL import Image
@@ -64,35 +64,6 @@ class BaseModel(ABC):
             Parameter file to deserialize to.
         """
         pass
-    
-    @staticmethod
-    def signal_inference_solid_IMG(p:BaseParams, sampler:RGBAImageSampler, model_type):
-        """
-        Inferes non-transparent, solid image signal.
-        Important since the model should only be fit to the solid region of the image.
-
-        Args
-        ----------
-        p :
-            The model parameters
-        sampler :
-            The sampler used for training the model
-
-        Returns
-        ----------
-        reconstructed_signal :
-            The full reconstructed image signal. Values in range 0.0 - 1.0 .
-        y :
-            Ground truth signal
-        """
-        # Inference of all pixel from image
-        x, y = sampler.inference_sample_solid()
-        reconstructed_signal = jnp.clip(
-            model_type.forward(p, x),
-            0,
-            1
-        )
-        return reconstructed_signal, y
 
     @staticmethod
     def full_signal_inference_IMG(p:BaseParams, sampler:RGBAImageSampler, model_type):
@@ -109,15 +80,21 @@ class BaseModel(ABC):
         Returns
         ----------
         reconstructed_signal :
-            The full reconstructed image signal. Values in range 0.0 - 255.0 .
+            The full reconstructed image signal. Values in range 0.0 - 1.0 .
         """
+        # Get all image coordinates and flatten into 2D array for vmap
+        cor = sampler.inference_sample()
+        cor_flat = cor.reshape(-1, cor.shape[-1])
+                
         # Inference of all pixel from image
         reconstructed_signal = jnp.clip(
-            model_type.forward(p, sampler.inference_sample()) * 255,
+            model_type.forward(p, cor_flat),
             0,
-            255
+            1
         )
-        return reconstructed_signal
+
+        # Reshape into [width, height, channels]
+        return reconstructed_signal.reshape(cor.shape[0], cor.shape[1], reconstructed_signal.shape[-1])
 
     @staticmethod
     def save_full_signal_inference_IMG(p:BaseParams, sampler:RGBAImageSampler, model_name, model_type):
@@ -141,12 +118,14 @@ class BaseModel(ABC):
         path_mask :
             The path to the masked reconstructed image signal
         """
+        # Model inference 
+        reconstructed_signal = model_type.full_signal_inference_IMG(p, sampler, model_type) * 255
+
         # Create reconstruction directory and save masked and non-masked image
         if not os.path.isdir(dir_registry["reconstruction_dir"]):
             os.makedirs(dir_registry["reconstruction_dir"])
 
         ## Non-masked
-        reconstructed_signal = model_type.full_signal_inference_IMG(p, sampler, model_type)
         path_full = f'{dir_registry["reconstruction_dir"]}/{model_name}_full.png'
         Image.fromarray(np.array(reconstructed_signal).astype(np.uint8)).save(path_full)
         

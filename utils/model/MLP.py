@@ -1,4 +1,4 @@
-from utils.sampler import *
+from utils.DataSampler import *
 from utils.parameter.MLPParams import MLPParams
 from utils.registry import *
 from utils.model.BaseModel import BaseModel

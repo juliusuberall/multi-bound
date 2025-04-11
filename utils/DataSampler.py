@@ -85,6 +85,7 @@ class RGBAImageSampler(DataSampler):
         ----------
         samples :
             The samples [coordinate, color]
+            All values are in range 0.0 - 1.0
         """
         p_x, p_y = jnp.meshgrid(jnp.arange(self.img.shape[0]),jnp.arange(self.img.shape[1]), indexing='ij')
         p_x = jnp.stack((p_x, p_y),axis=-1)[self.alpha]
@@ -142,7 +143,8 @@ class RGBAImageSampler(DataSampler):
         Returns
         ----------
         coordinates :
-            All image coordinates from the sampled image [coordinate]
+            All image coordinates from the sampled image [coordinate], shape [width, height, XY coordinate]
+            All values are in range 0.0 - 1.0
         """
         p_x, p_y = jnp.meshgrid(jnp.arange(self.img.shape[0]),jnp.arange(self.img.shape[1]), indexing='ij')
         x = jnp.stack((p_x, p_y),axis=-1)
@@ -157,8 +159,10 @@ class RGBAImageSampler(DataSampler):
 
         Returns
         ----------
-        coordinates :
-            All image coordinates from the solid regions of the sampled image
+        (coordinates, RGB) :
+            Image coordinates for solid image region, shape [width, height, XY coordinate] 
+            and their channels, shape [width, height, RGB] 
+            All values are in range 0.0 - 1.0
         """
         p_x, p_y = jnp.meshgrid(jnp.arange(self.img.shape[0]),jnp.arange(self.img.shape[1]), indexing='ij')
         x = jnp.stack((p_x, p_y),axis=-1)[self.alpha]

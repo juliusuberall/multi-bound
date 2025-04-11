@@ -1,5 +1,5 @@
 from utils.model.BaseModel import BaseModel
-from utils.sampler import *
+from utils.DataSampler import *
 from utils.parameter.MoEParams import *
 
 

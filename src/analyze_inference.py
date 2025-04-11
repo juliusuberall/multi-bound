@@ -2,10 +2,10 @@ import argparse
 import jax
 import os
 import json
-from utils.analyzer import *
+from utils.Analyzer import *
 from utils.model.BaseModel import *
 from utils.registry import * 
-from utils.sampler import RGBAImageSampler
+from utils.DataSampler import RGBAImageSampler
 from utils.model.registry import *
 
 if __name__ == "__main__":
@@ -18,9 +18,10 @@ if __name__ == "__main__":
     parser.add_argument("--data", required=True, help="Path to data object to fit")
     args = vars(parser.parse_args())
 
-    # Load training signal sampler
+    # Load training signal sampler and instantiate Analyzer
     sampler = RGBAImageSampler(args['data'])
     sampler.check_signal(key)
+    analyzer = Analyzer(sampler)
 
     MoEH.analysis_prep()
 
@@ -44,11 +45,11 @@ if __name__ == "__main__":
 
         ## M2E and inference-performance measure
         ### Inference-performance
-        avg_inf = eval_inference_speed_IMG(a_registry['inf_reps'], model_type, p, sampler)
+        avg_inf = analyzer.eval_inference_speed_IMG(a_registry['inf_reps'], model_type, p)
         model_results[a_registry['keys']["inference"]] = float(avg_inf)
 
         ### M2E 
-        m2e = eval_accuracy_IMG(model_type, p, sampler)
+        m2e = analyzer.eval_accuracy_IMG(model_type, p)
         model_results[a_registry['keys']["error"]] = float(m2e)
 
         ## Store all analysis results for this model

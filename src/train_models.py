@@ -2,7 +2,7 @@ import argparse
 import yaml
 import jax
 import optax
-from utils.sampler import RGBAImageSampler
+from utils.DataSampler import RGBAImageSampler
 from utils.model.BaseModel import *
 from utils.model.registry import *
 
