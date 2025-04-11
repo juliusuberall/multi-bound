@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 from utils.registry import *
+from utils.model.registry import *
 
 if __name__ == "__main__":
 
@@ -17,6 +18,10 @@ if __name__ == "__main__":
         # Deserialize analysis data 
         with open(folder + "/" + file) as f:
             raw_data = json.load(f)
+
+            # Mark loss difference epsilon value to be considered saturated
+            # M2E below this line is nearly inachievable 
+            plt.axhline(train_set["epsilon"], linestyle='--', c='black', label=r'$\epsilon$')
 
             # Extract analysis criteria
             for key, value in raw_data.items():

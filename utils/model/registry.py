@@ -8,3 +8,10 @@ model_registry = {
  "moe": MoE, 
  "moeH": MoEH,
 }
+
+# Training settings
+train_set = {
+    "plateau_depth" : 3, # Number of previous losses which are averaged to determine convergence plateau
+    "epsilon" : 1e-3,
+    "batch_size" : 1024,
+}
