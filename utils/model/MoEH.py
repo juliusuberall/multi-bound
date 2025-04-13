@@ -31,32 +31,45 @@ class MoEH(MoE):
 
         ##### HARD CODED FOR NOW
         ##### could not find good solution in implementation
-        top_k = 1
+        top_k = 2
 
         # Get top K indicies
         ## gate output shape : [batchsize, number of experts
         gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
-        _ , idx = jax.lax.top_k(gate, top_k)
-
+        gate_probs , idx = jax.lax.top_k(gate, top_k)
 
         # Define expert branches to switch to
         ## Tried a lot around, could not get anything else to work
-        branches = [
-            lambda x: MoE.forward_expert(p.expert1, x),
-            lambda x: MoE.forward_expert(p.expert2, x)
-        ]
+
+        @jax.jit
+        def expert1_fn(x):
+            return MoE.forward_expert(p.expert1, x)
+
+        @jax.jit
+        def expert2_fn(x):
+            return MoE.forward_expert(p.expert2, x)
+
+        branches = (expert1_fn, expert2_fn)
         
-        @staticmethod
+        @jax.jit
+        def expert_leaf_branching(x, i):
+            return jax.lax.switch(i, branches, x)
+        
         @jax.jit
         def expert_branching(x, i):
-            return jax.lax.switch(i, branches, x)
+            return jax.vmap(lambda i: expert_leaf_branching(x, i))(i)
 
-        expert_out = jax.vmap(expert_branching)(x, idx.squeeze(-1))
+        expert_out = jax.vmap(expert_branching)(x, idx)
+
+        # Compute weighted sum based on recalculcated gate probabilities, such that 
+        # selected experts sum to 1. If all experts of MoE used, weights remain the same.
+        gate_probs /= jnp.expand_dims(jnp.sum(gate_probs, axis=-1), axis=-1)
+        expert_out *= jnp.expand_dims(gate_probs, axis=-1)
+        expert_out = jnp.sum(expert_out, axis=-2)
 
         return expert_out
     
     @staticmethod
-    @jax.jit
     def loss(p:MoEParams, x, y):
         preds = MoEH.forward(p, x)
         return jnp.mean((preds - y) ** 2)
