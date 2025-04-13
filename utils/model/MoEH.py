@@ -38,19 +38,16 @@ class MoEH(MoE):
         gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
         gate_probs , idx = jax.lax.top_k(gate, top_k)
 
-        # Define expert branches to switch to
-        ## Tried a lot around, could not get anything else to work
-
-        @jax.jit
-        def expert1_fn(x):
-            return MoE.forward_expert(p.expert1, x)
-
-        @jax.jit
-        def expert2_fn(x):
-            return MoE.forward_expert(p.expert2, x)
-
-        branches = (expert1_fn, expert2_fn)
+        # Define expert evaluation branches dynamically 
+        ## Uses lambda to define local, unnamed python functions which represent 
+        ## the execution of the correct expert branch for an input
+        branches = tuple(
+            (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(p, name))
+            for name in p.__dataclass_fields__
+            if name.startswith("expert")
+        )
         
+        # Forward through activated experts
         @jax.jit
         def expert_leaf_branching(x, i):
             return jax.lax.switch(i, branches, x)
