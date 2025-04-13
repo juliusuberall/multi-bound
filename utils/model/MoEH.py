@@ -31,28 +31,29 @@ class MoEH(MoE):
 
         ##### HARD CODED FOR NOW
         ##### could not find good solution in implementation
-        top_k = 2
-
-        # Experting
-        ## expert output shape: [sample, output dimension (e.g. RGB), num_experts]
-        expert_out = []
-        for n in p.__dataclass_fields__:
-            if n == "gate" : continue
-            expert_out.append(jax.vmap(lambda x: MoE.forward_expert(p.__getattribute__(n), x))(x))
-        expert_out = jnp.stack(expert_out, axis=-1)
+        top_k = 1
 
         # Get top K indicies
         ## gate output shape : [batchsize, number of experts
         gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
         _ , idx = jax.lax.top_k(gate, top_k)
-        
-        # Hard expert selection
-        ## shape: [sample, num_experts, output dimension (e.g. RGB)]
-        expert_out = jnp.swapaxes(expert_out, -1, -2)
-        hard_selection = jnp.take_along_axis(expert_out, idx[...,None], axis=-2)
-        hard_selection = jnp.sum(jnp.swapaxes(hard_selection, -1, -2), axis=-1)
 
-        return hard_selection
+
+        # Define expert branches to switch to
+        ## Tried a lot around, could not get anything else to work
+        branches = [
+            lambda x: MoE.forward_expert(p.expert1, x),
+            lambda x: MoE.forward_expert(p.expert2, x)
+        ]
+        
+        @staticmethod
+        @jax.jit
+        def expert_branching(x, i):
+            return jax.lax.switch(i, branches, x)
+
+        expert_out = jax.vmap(expert_branching)(x, idx.squeeze(-1))
+
+        return expert_out
     
     @staticmethod
     @jax.jit
