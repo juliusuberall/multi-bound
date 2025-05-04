@@ -1,5 +1,6 @@
 Repo structure for model training, analysis and result plotting pipeline
 --------------------------------------------------------------------------------
+```
 Multi-Bound
 │── .vscode/                  # Launch settings
 │   ├── launch.json           # Debugging profiles
@@ -33,3 +34,4 @@ Multi-Bound
 │   ├── Analyzer.py           # Functions for evaluating models
 │── readme.md                 # Project documentation
 │── .gitignore                # Ignore unnecessary files
+```
