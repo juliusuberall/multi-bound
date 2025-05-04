@@ -9,7 +9,7 @@
             "program": "${workspaceFolder}/src/train_models.py",
             "console": "integratedTerminal",
             "args": [
-                "--config", "model_configs/mlp.yaml",
+                "--config", "model_configs/xs.yaml",
                 "--data", "data/img/dolphin_color.png",
             ],
             "env": {

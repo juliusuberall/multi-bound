@@ -7,7 +7,7 @@
             "command": "python",
             "args": [
                 "src/train_models.py",
-                "--config", "model_configs/mlp.yaml",
+                "--config", "model_configs/xs.yaml",
                 "--data", "data/img/dolphin_color.png",
             ],
             "options": {

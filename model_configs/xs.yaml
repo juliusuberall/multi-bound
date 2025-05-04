@@ -1,14 +1,58 @@
-mlp_S:
-  hidden_layer: [8,8,8,8]
+# All model configurations
+mlp_001:
+  hidden_layer: [4,4,4]
   learning_rate: 0.01
-mlp_M:
+mlp_002:
+  hidden_layer: [8,8,8]
+  learning_rate: 0.01
+mlp_004:
   hidden_layer: [16,16,16,16]
   learning_rate: 0.01
-mlp_L:
+mlp_008:
   hidden_layer: [32,32,32,32]
   learning_rate: 0.01
-# moe:
-#   n_experts : 2
-#   expert_hidden_layer: [4,4,4]
-#   gate_hidden_layer: [2,2,2]
-#   learning_rate: 0.01
+mlp_016:
+  hidden_layer: [64,64,64,64,64]
+  learning_rate: 0.001
+mlp_032:
+  hidden_layer: [128,128,128,128,128]
+  learning_rate: 0.001
+mlp_064:
+  hidden_layer: [256,256,256,256,256,256]
+  learning_rate: 0.001
+
+moe_001:
+  n_experts : 2
+  expert_hidden_layer: [4,4,4]
+  gate_hidden_layer: [2,2,2]
+  learning_rate: 0.01
+moe_002:
+  n_experts : 2
+  expert_hidden_layer: [8,8,8]
+  gate_hidden_layer: [4,4,4]
+  learning_rate: 0.01
+moe_004:
+  n_experts : 2
+  expert_hidden_layer: [16,16,16]
+  gate_hidden_layer: [8,8,8]
+  learning_rate: 0.01
+moe_008:
+  n_experts : 4
+  expert_hidden_layer: [16,16,16]
+  gate_hidden_layer: [8,8,8]
+  learning_rate: 0.01
+moe_016:
+  n_experts : 4
+  expert_hidden_layer: [32,32,32]
+  gate_hidden_layer: [16,16,16]
+  learning_rate: 0.001
+moe_032:
+  n_experts : 4
+  expert_hidden_layer: [64,64,64]
+  gate_hidden_layer: [32,32,32]
+  learning_rate: 0.001
+moe_064:
+  n_experts : 4
+  expert_hidden_layer: [128,128,128]
+  gate_hidden_layer: [64,64,64]
+  learning_rate: 0.001
