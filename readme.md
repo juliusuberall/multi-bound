@@ -6,6 +6,9 @@ Multi-Bound
 │   ├── launch.json           # Debugging profiles
 │   ├── tasks.json            # Task definition for full pipeline execution
 │── data/                     # Data to fit e.g. RGBA image
+│   ├── ...
+│── experiments/              # Standalone JAX JIT experiments to test JIT behaviour
+│   ├── ...
 │── model_configs/            # Stores YAML configurations for all model architectures
 │   ├── mlp.yaml              # MLP models
 │   ├── xs.yaml               # Extra small models / Currently all model profiles to test
