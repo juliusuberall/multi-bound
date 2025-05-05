@@ -38,6 +38,16 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "JAX class vs none",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/prototyping/jitClassVsNone.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

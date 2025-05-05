@@ -46,7 +46,7 @@ if __name__ == "__main__":
 
         analyzer = Analyzer(sampler)
 
-        ## Initialize losses for trainig stop when model satuared and plateaued
+        ## Initialize validation loss for trainig, stop when model satuared and plateaued
         x, y = sampler.sample(train_set["batch_size"], key)
         avg_previous_val_loss, val_loss = analyzer.eval_accuracy_IMG(model_type, model.params), 0
         
