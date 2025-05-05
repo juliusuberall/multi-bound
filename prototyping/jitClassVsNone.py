@@ -9,7 +9,7 @@ import jax
 # 1. Baseline speed of NOT JIT compiled function
 # 2. Speed of JIT compile function
 # 3. Speed of static class method which is JIT compiled
-# 4. Speed of static class method which is JIT compiled and called with a custom PyTree as arguments
+# 4. Speed of static class method which is JIT compiled and called with a custom PyTree parameters which update
 #
 # -> So far results indicate that there is no speed difference between 2. and 3.
 # -> Seems like JIT can reduce time to 10% of original function evaluation time
@@ -26,6 +26,7 @@ class Model():
     @staticmethod
     @jax.jit
     def activation(x):
+        print("⚡ Compiling...")
         return x**2 + x + 5
 ## 4.
 class Params(struct.PyTreeNode):
@@ -36,6 +37,7 @@ class Model2():
     @staticmethod
     @jax.jit
     def activation(x:Params):
+        print("⚡ Compiling...")
         return x.params**2 + x.params + 5
 
 # Baseline variables
@@ -78,7 +80,7 @@ model = Model2(Params(params = x))
 Model2.activation(model.p).block_until_ready()
 sjcp = time.time()
 for _ in range(reps):
-    Model2.activation(model.p).block_until_ready()
+    model.p = Params(Model2.activation(model.p).block_until_ready())
 ejcp = time.time()
 
 # ------------------------------------------------------------------------------------
