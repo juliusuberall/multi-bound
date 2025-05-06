@@ -16,7 +16,14 @@ from utils.DataSampler import RGBAImageSampler
 # 10. Hard-coded 2 experts
 # 11. Removes recalculation of topK weights to sum to 1
 #
-# -> 
+# Special cases
+# 20. Hard-coded all experts
+#
+# -> Inference speed does not scale linearly with model complexity and rather gets much slower 
+#    as the model becomes larger
+# -> Main bottleneck seems to be the implementation in 0. and 1. because even if we run all experts
+#    like in 20. its still significantly faster then 0. and 1. which in theory have half the model
+#    queries only.
 
 # ------------------------------------------------------------------------------------
 # Model configuration and setup
@@ -24,6 +31,12 @@ config = {
     "n_experts" : 4,
     "expert_hidden_layer": [4,4,4],
     "gate_hidden_layer": [2,2,2],
+    "learning_rate": 0.01,
+}
+config = {
+    "n_experts" : 4,
+    "expert_hidden_layer": [16,16,16],
+    "gate_hidden_layer": [8,8,8],
     "learning_rate": 0.01,
 }
 top_k = 2
@@ -111,6 +124,7 @@ def forward1(p:MoEParams, x):
 
     return expert_out
 
+
 # 10. >>>>>>>>>>>>>>>
 # Define expert evaluation branches dynamically 
 ## Uses lambda to define local, unnamed python functions which represent 
@@ -140,6 +154,7 @@ def forward10(p:MoEParams, x):
 
     return expert_out
 
+
 # 11. >>>>>>>>>>>>>>>
 # Define expert evaluation branches dynamically 
 ## Uses lambda to define local, unnamed python functions which represent 
@@ -160,6 +175,37 @@ def forward11(p:MoEParams, x):
     a = jax.vmap(branches[0])(x)
     b = jax.vmap(branches[1])(x)
     expert_out = jnp.stack((a,b), axis=1)
+
+    # Compute weighted sum based on recalculcated gate probabilities, such that 
+    # selected experts sum to 1. If all experts of MoE used, weights remain the same.
+    expert_out *= jnp.expand_dims(gate_probs, axis=-1)
+    expert_out = jnp.sum(expert_out, axis=-2)
+
+    return expert_out
+
+# 20. >>>>>>>>>>>>>>>
+# Define expert evaluation branches dynamically 
+## Uses lambda to define local, unnamed python functions which represent 
+## the execution of the correct expert branch for an input
+branches = tuple(
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
+    for name in moe.params.__dataclass_fields__
+    if name.startswith("expert")
+)
+@jax.jit
+def forward20(p:MoEParams, x):
+    # Get top K indicies
+    top_k = config["n_experts"]
+    ## gate output shape : [batchsize, number of experts
+    gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
+    gate_probs , idx = jax.lax.top_k(gate, top_k)
+
+    ### Hard coded first two experts
+    a = jax.vmap(branches[0])(x)
+    b = jax.vmap(branches[1])(x)
+    c = jax.vmap(branches[2])(x)
+    d = jax.vmap(branches[3])(x)
+    expert_out = jnp.stack((a,b,c,d), axis=1)
 
     # Compute weighted sum based on recalculcated gate probabilities, such that 
     # selected experts sum to 1. If all experts of MoE used, weights remain the same.
@@ -200,9 +246,17 @@ for _ in range(reps):
     forward11(moe.params, input).block_until_ready()
 e11 = time.time()
 
+# 20.
+forward20(moe.params, input).block_until_ready()
+s20 = time.time()
+for _ in range(reps):
+    forward20(moe.params, input).block_until_ready()
+e20 = time.time()
+
 # ------------------------------------------------------------------------------------
 print(f"############### Speed Results - {reps} Reps. ################")
 print(f"(0) -> Avg. time: {((e0 - s0)/reps * 1000000):.0f}μs")
 print(f"(1) -> Avg. time: {((e1 - s1)/reps * 1000000):.0f}μs")
 print(f"(10) -> Avg. time: {((e10 - s10)/reps * 1000000):.0f}μs")
 print(f"(11) -> Avg. time: {((e11 - s11)/reps * 1000000):.0f}μs")
+print(f"(20) -> Avg. time: {((e20 - s20)/reps * 1000000):.0f}μs")
