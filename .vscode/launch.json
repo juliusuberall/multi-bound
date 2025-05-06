@@ -40,10 +40,20 @@
             }
         },
         {
-            "name": "JAX class vs none",
+            "name": "EXP - JAX class vs none",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/prototyping/jitClassVsNone.py",
+            "program": "${workspaceFolder}/experiments/jitClassVsNone.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "EXP - JAX sparse gated MoE",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/experiments/jitMoEH.py",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"

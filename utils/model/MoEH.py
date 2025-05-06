@@ -1,5 +1,4 @@
 from utils.model.MoE import *
-import inspect
 import shutil
 
 class MoEH(MoE):
