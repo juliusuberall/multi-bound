@@ -3,6 +3,7 @@ from utils.parameter.BaseParams import *
 import jax.numpy as jnp
 import json
 import os
+from typing import Self
 
 # Network layer overview
 ## Gate (data input dimension, ... , hidden, ... , number of expert networks) 
@@ -16,16 +17,18 @@ class MoEParams(BaseParams):
         Base MoE parameter structure.
     </summary>
     """
+    gate: list = None # Gate network parameters
     def serialize(self, path:str="parameters"):
         serialized_p = []
 
         # Loop over all gate and expert networks in MoE and save in 
         # list(network) of list(layer) of lists(weights & bias)
         for n in self.__dataclass_fields__:
-            sub_network_p = []
-            for W, b in self.__getattribute__(n):
-                sub_network_p.append([W.tolist(), b.tolist()])
-            serialized_p.append(sub_network_p)
+            if n.startswith("expert") or n.startswith("gate"):
+                sub_network_p = []
+                for W, b in self.__getattribute__(n):
+                    sub_network_p.append([W.tolist(), b.tolist()])
+                serialized_p.append(sub_network_p)
         
         # Create models directory and save parameters
         if not os.path.isdir(dir_registry["model_params_dir"]):
@@ -34,7 +37,7 @@ class MoEParams(BaseParams):
             json.dump(serialized_p, f)
     
     @staticmethod
-    def deserialize(file:str):
+    def deserialize(file:str) -> Self:
         # Expects the serialized MoE to follow the standard -> [gate, 1st expert, ..., nth expert]
         # and match the order in the corresponding MoEParamsXXX struct
         p = []
@@ -46,7 +49,8 @@ class MoEParams(BaseParams):
             moe_params = moe_params_registry[n_experts]()
 
             # Convert back into list of tuples storing JAX arrays for weights and bias
-            n = moe_params.__dataclass_fields__
+            ## Filter fields to only fill in 'experts' and 'gate'
+            n = {k: v for k, v in moe_params.__dataclass_fields__.items() if k.startswith("gate") or k.startswith("expert")}
             for i, key in enumerate(n):
                 ## Load from json and insert in each network
                 p = []
@@ -64,7 +68,6 @@ class MoEParams2E(MoEParams):
         MoE paramater struct for 1 gate and 2 expert networks.
     </summary>
     """
-    gate: list = None
     expert1: list = None
     expert2: list = None
 
@@ -74,7 +77,6 @@ class MoEParams4E(MoEParams):
         MoE paramater struct for 1 gate and 4 expert networks.
     </summary>
     """
-    gate: list = None
     expert1: list = None
     expert2: list = None
     expert3: list = None

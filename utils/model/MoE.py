@@ -36,7 +36,7 @@ class MoE(BaseModel):
                     [sampler.x_dim] + config["gate_hidden_layer"] + [config["n_experts"]],
                     key
                 )
-            else :
+            elif n.startswith("expert") :
                 layer = self.init_layer(
                     [sampler.x_dim] + config["expert_hidden_layer"] + [sampler.y_dim],
                     key
@@ -100,8 +100,8 @@ class MoE(BaseModel):
         ## expert output shape: [sample, output dimension (e.g. RGB), num_experts]
         expert_out = []
         for n in p.__dataclass_fields__:
-            if n == "gate" : continue
-            expert_out.append(jax.vmap(lambda x: MoE.forward_expert(p.__getattribute__(n), x))(x))
+            if n.startswith("expert") : 
+                expert_out.append(jax.vmap(lambda x: MoE.forward_expert(p.__getattribute__(n), x))(x))
         expert_out = jnp.stack(expert_out, axis=-1)
 
         # Gating
