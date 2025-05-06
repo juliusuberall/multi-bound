@@ -9,15 +9,13 @@ from utils.DataSampler import RGBAImageSampler
 # This test evaluates the speed of sparse gated MoE forward implementations.
 # All scenarios use the same MoE parameter PyTree and topK. Increasingly the scenarios 
 # make additional changes to the forward(call). So all changes made in previous scenarios 
-# applies to the selected sencario as well.
+# apply to the selected sencario as well within a bracket from 0-10, 10-20 and 20-30.
 #
 # 0. Baseline implementation
 # 1. Lambda expressions to run and map input to experts is defined static outside of function
 # 2. Removes nested vmap and for-loops top-k times and computes with single vmapped-switch
 # 10. Hard-coded 2 experts
 # 11. Removes recalculation of topK weights to sum to 1
-#
-# Special cases
 # 20. Hard-coded all experts
 #
 # -> Inference speed does not scale linearly with model complexity and rather gets much slower 
