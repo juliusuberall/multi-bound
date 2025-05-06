@@ -48,10 +48,12 @@ class Analyzer():
         x_flat = x.reshape(-1, x.shape[-1])
 
         # Timed inference
+        ## Warm up JIT and trace, compile and cache 
+        model_type.forward(p, x_flat).block_until_ready()
         inf_timing = []
         for i in range(n):
             time0 = time.time()
-            model_type.forward(p, x_flat)
+            model_type.forward(p, x_flat).block_until_ready()
             time1 = time.time()
             inf_timing.append(time1 - time0)
         inf_timing = jnp.mean(jnp.array(inf_timing))
