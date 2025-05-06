@@ -13,6 +13,7 @@ from utils.DataSampler import RGBAImageSampler
 #
 # 0. Baseline implementation
 # 1. Lambda expressions to run and map input to experts is defined static outside of function
+# 2. Removes nested vmap and for-loops top-k times and computes with single vmapped-switch
 # 10. Hard-coded 2 experts
 # 11. Removes recalculation of topK weights to sum to 1
 #
@@ -24,15 +25,10 @@ from utils.DataSampler import RGBAImageSampler
 # -> Main bottleneck seems to be the implementation in 0. and 1. because even if we run all experts
 #    like in 20. its still significantly faster then 0. and 1. which in theory have half the model
 #    queries only.
+# -> 0. and 1. scale badly with increasing number of top-k and speed drops fast.
 
 # ------------------------------------------------------------------------------------
 # Model configuration and setup
-config = {
-    "n_experts" : 4,
-    "expert_hidden_layer": [4,4,4],
-    "gate_hidden_layer": [2,2,2],
-    "learning_rate": 0.01,
-}
 config = {
     "n_experts" : 4,
     "expert_hidden_layer": [16,16,16],
@@ -91,9 +87,6 @@ def forward0(p:MoEParams, x):
 
 
 # 1. >>>>>>>>>>>>>>>
-# Define expert evaluation branches dynamically 
-## Uses lambda to define local, unnamed python functions which represent 
-## the execution of the correct expert branch for an input
 branches = tuple(
     (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
     for name in moe.params.__dataclass_fields__
@@ -125,10 +118,36 @@ def forward1(p:MoEParams, x):
     return expert_out
 
 
+# 2. >>>>>>>>>>>>>>>
+branches = tuple(
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
+    for name in moe.params.__dataclass_fields__
+    if name.startswith("expert")
+)
+jax.jit
+def expert(x, idx):
+    return jax.lax.switch(idx, branches, x)
+@jax.jit
+def forward2(p:MoEParams, x):
+    ## gate output shape : [batchsize, number of experts]
+    gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
+    gate_probs , idx = jax.lax.top_k(gate, top_k)
+
+    out = []
+    for k in range(top_k):
+        out.append(jax.vmap(expert)(x, idx[...,k]))
+    expert_out = jnp.stack(out, axis=1)
+
+    # Compute weighted sum based on recalculcated gate probabilities, such that 
+    # selected experts sum to 1. If all experts of MoE used, weights remain the same.
+    gate_probs /= jnp.expand_dims(jnp.sum(gate_probs, axis=-1), axis=-1)
+    expert_out *= jnp.expand_dims(gate_probs, axis=-1)
+    expert_out = jnp.sum(expert_out, axis=-2)
+
+    return expert_out
+
+
 # 10. >>>>>>>>>>>>>>>
-# Define expert evaluation branches dynamically 
-## Uses lambda to define local, unnamed python functions which represent 
-## the execution of the correct expert branch for an input
 branches = tuple(
     (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
     for name in moe.params.__dataclass_fields__
@@ -156,9 +175,6 @@ def forward10(p:MoEParams, x):
 
 
 # 11. >>>>>>>>>>>>>>>
-# Define expert evaluation branches dynamically 
-## Uses lambda to define local, unnamed python functions which represent 
-## the execution of the correct expert branch for an input
 branches = tuple(
     (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
     for name in moe.params.__dataclass_fields__
@@ -183,10 +199,8 @@ def forward11(p:MoEParams, x):
 
     return expert_out
 
+
 # 20. >>>>>>>>>>>>>>>
-# Define expert evaluation branches dynamically 
-## Uses lambda to define local, unnamed python functions which represent 
-## the execution of the correct expert branch for an input
 branches = tuple(
     (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
     for name in moe.params.__dataclass_fields__
@@ -232,6 +246,13 @@ for _ in range(reps):
     forward1(moe.params, input).block_until_ready()
 e1 = time.time()
 
+# 2.
+forward2(moe.params, input).block_until_ready()
+s2 = time.time()
+for _ in range(reps):
+    forward2(moe.params, input).block_until_ready()
+e2 = time.time()
+
 # 10.
 forward10(moe.params, input).block_until_ready()
 s10 = time.time()
@@ -257,6 +278,7 @@ e20 = time.time()
 print(f"############### Speed Results - {reps} Reps. ################")
 print(f"(0) -> Avg. time: {((e0 - s0)/reps * 1000000):.0f}μs")
 print(f"(1) -> Avg. time: {((e1 - s1)/reps * 1000000):.0f}μs")
+print(f"(2) -> Avg. time: {((e2 - s2)/reps * 1000000):.0f}μs")
 print(f"(10) -> Avg. time: {((e10 - s10)/reps * 1000000):.0f}μs")
 print(f"(11) -> Avg. time: {((e11 - s11)/reps * 1000000):.0f}μs")
 print(f"(20) -> Avg. time: {((e20 - s20)/reps * 1000000):.0f}μs")
