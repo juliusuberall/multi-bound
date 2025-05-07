@@ -59,9 +59,8 @@ def forward0(p:MoEParams, x):
     ## Uses lambda to define local, unnamed python functions which represent 
     ## the execution of the correct expert branch for an input
     branches = tuple(
-        (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(p, name))
-        for name in p.__dataclass_fields__
-        if name.startswith("expert")
+        (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+        for expert in p.experts
     )
     
     # Forward through activated experts
@@ -86,9 +85,8 @@ def forward0(p:MoEParams, x):
 
 # 1. >>>>>>>>>>>>>>>
 branches = tuple(
-    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
-    for name in moe.params.__dataclass_fields__
-    if name.startswith("expert")
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+    for expert in moe.params.experts
 )
 @jax.jit
 def forward1(p:MoEParams, x):
@@ -118,9 +116,8 @@ def forward1(p:MoEParams, x):
 
 # 2. >>>>>>>>>>>>>>>
 branches = tuple(
-    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
-    for name in moe.params.__dataclass_fields__
-    if name.startswith("expert")
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+    for expert in moe.params.experts
 )
 jax.jit
 def expert(x, idx):
@@ -147,9 +144,8 @@ def forward2(p:MoEParams, x):
 
 # 10. >>>>>>>>>>>>>>>
 branches = tuple(
-    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
-    for name in moe.params.__dataclass_fields__
-    if name.startswith("expert")
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+    for expert in moe.params.experts
 )
 @jax.jit
 def forward10(p:MoEParams, x):
@@ -174,9 +170,8 @@ def forward10(p:MoEParams, x):
 
 # 11. >>>>>>>>>>>>>>>
 branches = tuple(
-    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
-    for name in moe.params.__dataclass_fields__
-    if name.startswith("expert")
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+    for expert in moe.params.experts
 )
 @jax.jit
 def forward11(p:MoEParams, x):
@@ -200,9 +195,8 @@ def forward11(p:MoEParams, x):
 
 # 20. >>>>>>>>>>>>>>>
 branches = tuple(
-    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(moe.params, name))
-    for name in moe.params.__dataclass_fields__
-    if name.startswith("expert")
+    (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+    for expert in moe.params.experts
 )
 @jax.jit
 def forward20(p:MoEParams, x):

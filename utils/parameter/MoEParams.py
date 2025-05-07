@@ -11,6 +11,26 @@ from typing import Self
 ## Expert (data input dimension, ... , hidden, ..., data output dimension)
 ## -> returns expert wise predicition
 
+## Experts list layout
+# experts/
+# ├── expert_0/
+# │   ├── layer_0/
+# │   │   ├── W  (JAX array, 2D)
+# │   │   └── b  (JAX array, 1D)
+# │   ├── layer_1/
+# │   │   ├── W  (JAX array, 2D)
+# │   │   └── b  (JAX array, 1D)
+# │   └── ...
+# ├── expert_1/
+# │   ├── layer_0/
+# │   │   ├── W
+# │   │   └── b
+# │   ├── layer_1/
+# │   │   ├── W
+# │   │   └── b
+# │   └── ...
+# └── ...
+
 class MoEParams(BaseParams):
     """
     <summary>
@@ -18,72 +38,51 @@ class MoEParams(BaseParams):
     </summary>
     """
     gate: list = None # Gate network parameters
-    def serialize(self, path:str="parameters"):
-        serialized_p = []
+    experts: list = None # Expert networks parameters
 
-        # Loop over all gate and expert networks in MoE and save in 
+    def serialize(self, path:str="parameters"):
+        # Final dictionary for gate and experts
+        all_p = {}
+
+        # Loop over all EXPERT networks in MoE and save in 
         # list(network) of list(layer) of lists(weights & bias)
-        for n in self.__dataclass_fields__:
-            if n.startswith("expert") or n.startswith("gate"):
-                sub_network_p = []
-                for W, b in self.__getattribute__(n):
-                    sub_network_p.append([W.tolist(), b.tolist()])
-                serialized_p.append(sub_network_p)
+        all_experts = []
+        for expert in self.experts:
+            p = []
+            for W, b in expert:
+                p.append([W.tolist(), b.tolist()])
+            all_experts.append(p)
         
+        # Loop over all GATE networks in MoE and save in 
+        # list(network) of list(layer) of lists(weights & bias)
+        gate = []
+        for W, b in self.gate:
+            gate.append([W.tolist(), b.tolist()])
+
+        # Add to dictionary to serialize
+        all_p['experts'] = all_experts
+        all_p['gate'] = gate
+
         # Create models directory and save parameters
         if not os.path.isdir(dir_registry["model_params_dir"]):
             os.makedirs(dir_registry["model_params_dir"])
         with open(f"{dir_registry["model_params_dir"]+'/'+path}.json", "w") as f:
-            json.dump(serialized_p, f)
+            json.dump(all_p, f)
     
     @staticmethod
     def deserialize(file:str) -> Self:
-        # Expects the serialized MoE to follow the standard -> [gate, 1st expert, ..., nth expert]
-        # and match the order in the corresponding MoEParamsXXX struct
+        # Expects a dictionary to deserialize. Will use the order of expert
+        # parameters to set the parameters in the MoEParams struct.
         p = []
         with open(file) as f:
             d = json.load(f)
 
-            # Determine the number of experts and select correct MoEParams struct
-            n_experts = len(d) - 1 
-            moe_params = moe_params_registry[n_experts]()
+            p = MoEParams(
+                # Set gate parameters 
+                gate = [(jnp.array(W), jnp.array(b)) for W, b in d['gate']],
 
-            # Convert back into list of tuples storing JAX arrays for weights and bias
-            ## Filter fields to only fill in 'experts' and 'gate'
-            n = {k: v for k, v in moe_params.__dataclass_fields__.items() if k.startswith("gate") or k.startswith("expert")}
-            for i, key in enumerate(n):
-                ## Load from json and insert in each network
-                p = []
-                for W, b in d[i]:
-                    p.append((jnp.array(W), jnp.array(b)))
-
-                ## **{x:y} transforms into keyword argument x=y
-                moe_params = moe_params.replace(**{key: p})
-
-        return moe_params
-
-class MoEParams2E(MoEParams):
-    """
-    <summary>
-        MoE paramater struct for 1 gate and 2 expert networks.
-    </summary>
-    """
-    expert1: list = None
-    expert2: list = None
-
-class MoEParams4E(MoEParams):
-    """
-    <summary>
-        MoE paramater struct for 1 gate and 4 expert networks.
-    </summary>
-    """
-    expert1: list = None
-    expert2: list = None
-    expert3: list = None
-    expert4: list = None
-
-# MoE parameter registry to identify which struct layout to use
-moe_params_registry = {
-    2 : MoEParams2E,
-    4 : MoEParams4E
-}
+                # Set expert parameters as list of experts
+                experts = [[(jnp.array(W), jnp.array(b)) for W, b in expert] 
+                    for expert in d['experts']]
+            )
+        return p

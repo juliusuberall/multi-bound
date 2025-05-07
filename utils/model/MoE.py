@@ -26,24 +26,15 @@ class MoE(BaseModel):
         self.learning_rate = config["learning_rate"]
         
         # Assign correct MoE parameter struct based on number of experts
-        p = moe_params_registry[config["n_experts"]]()
-        for n in p.__dataclass_fields__:
-            
-            ## Init network layer correct depending on gate or expert
-            layer = []
-            if n == "gate" :
-                layer = self.init_layer(
+        p = MoEParams(
+            gate = self.init_layer(
                     [sampler.x_dim] + config["gate_hidden_layer"] + [config["n_experts"]],
                     key
-                )
-            elif n.startswith("expert") :
-                layer = self.init_layer(
-                    [sampler.x_dim] + config["expert_hidden_layer"] + [sampler.y_dim],
-                    key
-                )
-
-            ## **{x:y} transforms into keyword argument x=y
-            p = p.replace(**{n: layer})
+                ),
+            ## All experts are nested in a single list by index
+            experts = [self.init_layer([sampler.x_dim] + config["expert_hidden_layer"] + [sampler.y_dim], key) 
+                for _ in range(config["n_experts"])]
+        )
         self.params = p
     
     @staticmethod
@@ -99,9 +90,8 @@ class MoE(BaseModel):
         # Experting
         ## expert output shape: [sample, output dimension (e.g. RGB), num_experts]
         expert_out = []
-        for n in p.__dataclass_fields__:
-            if n.startswith("expert") : 
-                expert_out.append(jax.vmap(lambda x: MoE.forward_expert(p.__getattribute__(n), x))(x))
+        for expert in p.experts:
+            expert_out.append(jax.vmap(lambda x: MoE.forward_expert(expert, x))(x))
         expert_out = jnp.stack(expert_out, axis=-1)
 
         # Gating

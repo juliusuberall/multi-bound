@@ -41,9 +41,8 @@ class MoEH(MoE):
         ## Uses lambda to define local, unnamed python functions which represent 
         ## the execution of the correct expert branch for an input
         branches = tuple(
-            (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(getattr(p, name))
-            for name in p.__dataclass_fields__
-            if name.startswith("expert")
+            (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+            for expert in p.experts
         )
         
         # Forward through activated experts
