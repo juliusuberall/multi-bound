@@ -27,10 +27,10 @@ if __name__ == "__main__":
 
     # Load model parameters and analyze
     results = {}
+    print('Beginning model analysis ...')
     for param_file in sorted(os.listdir(dir_registry['model_params_dir'])):
 
         ## House keeping
-        print(f"Analyzing {param_file}")
         model_results = {}
 
         ## Identify model type
@@ -45,15 +45,16 @@ if __name__ == "__main__":
 
         ## M2E and inference-performance measure
         ### Inference-performance
-        avg_inf = analyzer.eval_inference_speed_IMG(a_registry['inf_reps'], model_type, p)
+        avg_inf = analyzer.eval_inference_speed_IMG(a_registry['inf_reps'], model_type, p) 
         model_results[a_registry['keys']["inference"]] = float(avg_inf)
 
         ### M2E 
         m2e = analyzer.eval_accuracy_IMG(model_type, p)
         model_results[a_registry['keys']["error"]] = float(m2e)
 
-        ## Store all analysis results for this model
+        ## Store all analysis results for this model and print results
         results[f'{model_name}'] = model_results
+        print(f"Analyzed {param_file} - Speed: {int(avg_inf * 1000)}ms - M2E: {round(float(m2e), 4)}")
     
     MoEH.analysis_cleanup()
 
