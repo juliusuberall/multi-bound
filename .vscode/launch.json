@@ -58,6 +58,16 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "EXP - JAX vs PyTorch",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/experiments/jitJaxPyTorch.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }
