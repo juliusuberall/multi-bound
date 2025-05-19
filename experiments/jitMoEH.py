@@ -4,6 +4,7 @@ import time
 from jax import random
 from utils.parameter.MoEParams import *
 from utils.model.MoE import *
+from utils.model.MLP import *
 from utils.DataSampler import RGBAImageSampler
 
 # This test evaluates the speed of sparse gated MoE forward implementations.
@@ -16,7 +17,8 @@ from utils.DataSampler import RGBAImageSampler
 # 2. Removes nested vmap and for-loops top-k times and computes with single vmapped-switch
 # 10. Hard-coded 2 experts
 # 11. Removes recalculation of topK weights to sum to 1
-# 20. Hard-coded all experts
+# 20. Hard-coded all experts with weighted gate sum for all experts
+# 30. MLP reference
 #
 # -> Inference speed does not scale linearly with model complexity and rather gets much slower 
 #    as the model becomes larger
@@ -220,9 +222,17 @@ def forward20(p:MoEParams, x):
 
     return expert_out
 
+# 30. >>>>>>>>>>>>>>>
+# Model should have same parameter capacity as MoE]
+mlp_config = {
+    "hidden_layer": [36,36,36],
+    "learning_rate": 0.01
+}
+mlp = MLP(mlp_config, sampler, rkey)
+
 # ------------------------------------------------------------------------------------
 # Measure speed
-reps = 1000
+reps = 200
 
 # 0.
 forward0(moe.params, input).block_until_ready()
@@ -266,6 +276,13 @@ for _ in range(reps):
     forward20(moe.params, input).block_until_ready()
 e20 = time.time()
 
+# 30.
+MLP.forward(mlp.params, input).block_until_ready()
+s30 = time.time()
+for _ in range(reps):
+    MLP.forward(mlp.params, input).block_until_ready()
+e30 = time.time()
+
 # ------------------------------------------------------------------------------------
 print(f"############### Speed Results - {reps} Reps. ################")
 print(f"(0) -> Avg. time: {((e0 - s0)/reps * 1000000):.0f}μs")
@@ -274,3 +291,4 @@ print(f"(2) -> Avg. time: {((e2 - s2)/reps * 1000000):.0f}μs")
 print(f"(10) -> Avg. time: {((e10 - s10)/reps * 1000000):.0f}μs")
 print(f"(11) -> Avg. time: {((e11 - s11)/reps * 1000000):.0f}μs")
 print(f"(20) -> Avg. time: {((e20 - s20)/reps * 1000000):.0f}μs")
+print(f"(30) -> Avg. time: {((e30 - s30)/reps * 1000000):.0f}μs")
