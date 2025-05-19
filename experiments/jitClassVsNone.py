@@ -40,14 +40,14 @@ class Model2():
         print("⚡ Compiling...")
         return x.params**2 + x.params + 5
 
+# ------------------------------------------------------------------------------------
+# Measure speed
 # Baseline variables
 rkey = random.PRNGKey(28)
-x = random.normal(rkey,(1000))
+x = random.normal(rkey,(64))
 reps = 10000
 print(jax.devices())
 
-# ------------------------------------------------------------------------------------
-# Measure speed
 ## Crucial for JAX to use .block_until_ready() since
 ## JAX uses asynchronous dispatching and time evaluation 
 ## would be wrong without this call
@@ -85,7 +85,7 @@ ejcp = time.time()
 
 # ------------------------------------------------------------------------------------
 print(f"############################### Speed Results ################################")
-print(f"-> Base Avg. time: {((e - s)/reps * 1000000):.0f} microseconds")
-print(f"-> JIT Avg. time: {((ej - sj)/reps * 1000000):.0f} microseconds")
-print(f"-> Class JIT Avg. time: {((ejc - sjc)/reps * 1000000):.0f} microseconds")
-print(f"-> Class JIT PyTree Params Avg. time: {((ejcp - sjcp)/reps * 1000000):.0f} microseconds")
+print(f"(1) -> Avg. time: {((e - s)/reps * 1000000):.0f}μs")
+print(f"(2) -> Avg. time: {((ej - sj)/reps * 1000000):.0f}μs")
+print(f"(3) -> Avg. time: {((ejc - sjc)/reps * 1000000):.0f}μs")
+print(f"(4) -> Avg. time: {((ejcp - sjcp)/reps * 1000000):.0f}μs")
