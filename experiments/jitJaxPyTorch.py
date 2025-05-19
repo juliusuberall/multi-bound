@@ -17,14 +17,14 @@ from utils.model.BaseModel import *
 # 0. JAX JIT
 # 1. PyTorch
 #
-# -> Seems like the Pytorch MLP runs slighlty faster than JAX
-# -> Somehow it seems that both runs significantly faster than in the Neural Bounding Paper...
-#    Not sure if that is due to difference in machine (in theory neural bounding machine is much better).
+# -> JAX JIT runs twice as fast as not jitted PyTorch 
+# -> The cross-framework comparison is sensitive to batch-sizes and we choose a power-2
+#    number to align with memory accessing patterns in hardware. 
 
 # ------------------------------------------------------------------------------------
 # Set up model query
-rkey = jax.random.PRNGKey(28)
-j_input = random.normal(rkey,(1000, 6))
+rkey = jax.random.PRNGKey(29)
+j_input = random.normal(rkey,(64, 6))
 p_input = torch.from_numpy(np.asarray(j_input))
 
 output_dim = 1
@@ -65,7 +65,7 @@ class PyMLP(nn.Module):
 
 # ------------------------------------------------------------------------------------
 # Measure speed
-reps = 1000
+reps = 10000
 
 # jax.config.update("jax_disable_jit", False) # True = JIT off
 
