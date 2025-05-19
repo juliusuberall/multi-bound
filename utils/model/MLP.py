@@ -27,7 +27,7 @@ class MLP(BaseModel):
         """
         self.learning_rate = config["learning_rate"]
         self.params = MLPParams(
-            params = self.init_layer(
+            params = BaseModel.init_layer(
                 [sampler.x_dim] + config["hidden_layer"] + [sampler.y_dim],
                 key
             )

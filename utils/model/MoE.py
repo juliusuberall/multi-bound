@@ -1,3 +1,4 @@
+import utils.globals
 from utils.model.BaseModel import BaseModel
 from utils.DataSampler import *
 from utils.parameter.MoEParams import *
@@ -27,12 +28,12 @@ class MoE(BaseModel):
         
         # Assign correct MoE parameter struct based on number of experts
         p = MoEParams(
-            gate = self.init_layer(
+            gate = BaseModel.init_layer(
                     [sampler.x_dim] + config["gate_hidden_layer"] + [config["n_experts"]],
                     key
                 ),
             ## All experts are nested in a single list by index
-            experts = [self.init_layer([sampler.x_dim] + config["expert_hidden_layer"] + [sampler.y_dim], key) 
+            experts = [BaseModel.init_layer([sampler.x_dim] + config["expert_hidden_layer"] + [sampler.y_dim], key) 
                 for _ in range(config["n_experts"])]
         )
         self.params = p
@@ -121,4 +122,10 @@ class MoE(BaseModel):
     @staticmethod
     def deserialize(path:str) -> MoEParams:
         p = MoEParams.deserialize(path)
+
+        # Add global MoE expert branches
+        utils.globals.global_MoE_branches = tuple(
+            (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
+            for expert in p.experts
+        )
         return p

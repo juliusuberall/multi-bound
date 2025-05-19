@@ -15,7 +15,7 @@ class BaseModel(ABC):
     </summary>
     """
 
-    def init_layer(self, layer_dims, key):
+    def init_layer(layer_dims, key):
         """
         Initalize parameters of network (weights and biases)
 

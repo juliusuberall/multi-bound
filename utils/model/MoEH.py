@@ -1,5 +1,6 @@
 from utils.model.MoE import *
 import shutil
+import utils.globals
 
 class MoEH(MoE):
     """
@@ -15,15 +16,13 @@ class MoEH(MoE):
     
     @staticmethod
     @jax.jit
-    def forward(p:MoEParams, x):
+    def forward( p , x):
         """
         Hard forward through entire Mixture of Experts (MoE). 
         This will select the top k experts and use them for inferrence instead of using all for all.
 
         Args
         ----------
-        p :
-            Network parameters for gate and experts
         x :
             The input data to forward through the model. Expects 2D array [batch dimension, input dim]
         """
@@ -37,24 +36,15 @@ class MoEH(MoE):
         gate = jax.vmap(lambda x: MoE.forward_gate(p.gate, x))(x)
         gate_probs , idx = jax.lax.top_k(gate, top_k)
 
-        # Define expert evaluation branches dynamically 
-        ## Uses lambda to define local, unnamed python functions which represent 
-        ## the execution of the correct expert branch for an input
-        branches = tuple(
-            (lambda expert_params: (lambda x: MoE.forward_expert(expert_params, x)))(expert)
-            for expert in p.experts
-        )
+        jax.jit
+        def expert(x, idx):
+            return jax.lax.switch(idx, utils.globals.global_MoE_branches , x)
         
         # Forward through activated experts
-        @jax.jit
-        def expert_leaf_branching(x, i):
-            return jax.lax.switch(i, branches, x)
-        
-        @jax.jit
-        def expert_branching(x, i):
-            return jax.vmap(lambda i: expert_leaf_branching(x, i))(i)
-
-        expert_out = jax.vmap(expert_branching)(x, idx)
+        out = []
+        for k in range(top_k):
+            out.append(jax.vmap(expert)(x, idx[...,k]))
+        expert_out = jnp.stack(out, axis=1)
 
         # Compute weighted sum based on recalculcated gate probabilities, such that 
         # selected experts sum to 1. If all experts of MoE used, weights remain the same.

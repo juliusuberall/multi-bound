@@ -2,6 +2,7 @@ import argparse
 import jax
 import os
 import json
+import utils.globals
 from utils.Analyzer import *
 from utils.model.BaseModel import *
 from utils.registry import * 
