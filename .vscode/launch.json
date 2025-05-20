@@ -68,6 +68,16 @@
             "env": {
                 "PYTHONPATH": "${workspaceFolder}"
             }
+        },
+        {
+            "name": "EXP - Neural Bounding Comparison",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/experiments/neuralBoundingComparison.py",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }
