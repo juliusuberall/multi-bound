@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
         ## Store all analysis results for this model and print results
         results[f'{model_name}'] = model_results
-        print(f"Analyzed {param_file} - Speed: {int(avg_inf * 1000)}ms - M2E: {round(float(m2e), 4)}")
+        print(f"Analyzed {param_file} - Speed: {int(avg_inf)}μs - M2E: {round(float(m2e), 4)}")
     
     MoEH.analysis_cleanup()
 

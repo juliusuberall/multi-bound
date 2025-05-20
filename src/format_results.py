@@ -29,9 +29,7 @@ if __name__ == "__main__":
                 model_name.append(key)
                 error.append(value[a_registry['keys']['error']])
                 color.append(a_registry['mcol'][model_type])
-
-                ## convert to miliseconds (1s = 1000ms)
-                inference.append(value[a_registry['keys']['inference']] * 1000)
+                inference.append(value[a_registry['keys']['inference']])
 
                 # Create plot and save
                 ## Draw line between models
@@ -50,7 +48,7 @@ if __name__ == "__main__":
                 s=90,
                 c=color)
             plt.ylabel("M2E")
-            plt.xlabel(f"Inference speed (ms)\n Mean of {a_registry['inf_reps']} iterations full image prediction")
+            plt.xlabel(f"Inference speed (μs) per single query\n Mean of {a_registry['inf_reps']} repetitions")
             for i in range(len(model_name)):
                 plt.annotate(
                     model_name[i].split('_')[1].replace("0", ""),
