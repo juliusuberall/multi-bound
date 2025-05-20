@@ -23,7 +23,7 @@ class Analyzer():
 
     def eval_inference_speed_IMG(self, n:int , model_type:BaseModel, p:BaseParams):    
         """
-        Measures the average inference time for the sampler signal over n repetitions.
+        Measures the average inference time for the sampler signal over n repetitions in miliseconds.
 
         Args
         ----------
@@ -46,17 +46,19 @@ class Analyzer():
         # Prepare Image for analysis and flatten into 
         x, _ = self.sampler.inference_sample_solid()
         x_flat = x.reshape(-1, x.shape[-1])
+        batch_size = 128
+        x_batched = DataSampler.batch_generator(x, batch_size)
 
         # Timed inference
         ## Warm up JIT and trace, compile and cache 
         model_type.forward(p, x_flat).block_until_ready()
-        inf_timing = []
+        time0 = time.time()
         for i in range(n):
-            time0 = time.time()
-            model_type.forward(p, x_flat).block_until_ready()
-            time1 = time.time()
-            inf_timing.append(time1 - time0)
-        inf_timing = jnp.mean(jnp.array(inf_timing))
+            out = jax.vmap(lambda x: model_type.forward(p, x))(x_batched)
+            out.block_until_ready()
+
+        ## convert to microseconds (1s = 1000000 μs)
+        inf_timing = (time.time() - time0) / (jnp.size(x_batched, axis=0) * batch_size) / n * 1000000
         return inf_timing
 
     def eval_accuracy_IMG(self, model_type:BaseModel, p:BaseParams):

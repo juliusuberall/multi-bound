@@ -27,6 +27,15 @@ class DataSampler(ABC):
     def check_signal(self):
         pass
 
+    @staticmethod
+    def batch_generator(x, batch_size):
+        batches =[]
+        for i in range(0, x.shape[0], batch_size):
+            batches.append(x[i:i + batch_size])
+            
+        # Trim tail of x that does not fit with batchsize
+        return jnp.stack(batches[0:-1])
+
 # Class to store and sample image to learn with network
 class RGBAImageSampler(DataSampler):
 
